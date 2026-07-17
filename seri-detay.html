@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Seri Detay | Mikrokosmos</title>
+    <link rel="stylesheet" href="assets/css/galactic.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <div class="mk-space-bg"></div>
+    
+    <main class="max-w mra mla" style="padding-top:50px;">
+        <div id="series-header" class="grid gtc-175fr gg-30" style="background:var(--panel-bg); padding:30px; border-radius:20px;">
+            <!-- JS ile dolacak -->
+        </div>
+
+        <div class="chapter-list-section" style="margin-top:30px;">
+            <h3 class="title"><i class="fa-solid fa-list"></i> Bölümler</h3>
+            <div id="chapter-list" class="bxcl">
+                <ul>
+                    <!-- Bölümler buraya listelenecek -->
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const seriId = urlParams.get('id');
+
+        async function initDetay() {
+            // 1. Seri Künyesini Getir
+            const res = await fetch('data/series.json');
+            const allSeries = await res.json();
+            const s = allSeries.find(item => item.id === seriId);
+            
+            document.getElementById('series-header').innerHTML = `
+                <div class="s-thumb"><img src="${s.thumb}" style="width:100%; border-radius:10px;"></div>
+                <div class="s-info">
+                    <h1>${s.title}</h1>
+                    <p>${s.desc}</p>
+                    <div class="status-badge">${s.status}</div>
+                </div>
+            `;
+
+            // 2. Bölümleri Getir (Her serinin kendi JSON dosyası olacak)
+            try {
+                const cRes = await fetch(`data/chapters/${seriId}.json`);
+                const chapters = await cRes.json();
+                const list = document.getElementById('chapter-list').querySelector('ul');
+                
+                chapters.reverse().forEach(c => {
+                    list.innerHTML += `
+                        <li style="list-style:none; margin-bottom:10px;">
+                            <a href="oku.html?seri=${seriId}&bolum=${c.no}" class="chbox" style="display:block; background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; color:#fff; text-decoration:none;">
+                                ${c.title}
+                            </a>
+                        </li>
+                    `;
+                });
+            } catch(e) {
+                console.log("Henüz bölüm yüklenmemiş.");
+            }
+        }
+        initDetay();
+    </script>
+</body>
+</html>
