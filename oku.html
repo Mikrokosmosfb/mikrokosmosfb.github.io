@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Okuyucu | Mikrokosmos</title>
+    <link rel="stylesheet" href="assets/css/galactic.css">
+    <style>
+        .reader-container img { width: 100%; display: block; margin: 0 auto; }
+        .novel-text { color: #ccc; font-size: 19px; max-width: 800px; margin: auto; padding: 20px; line-height: 1.8; }
+        .reader-nav { position: fixed; bottom: 0; width: 100%; background: rgba(0,0,0,0.8); padding: 15px; display: flex; justify-content: center; gap: 20px; z-index: 100; }
+        .nav-btn { background: var(--primary-purple); color: white; border: none; padding: 10px 25px; border-radius: 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="mk-space-bg"></div>
+
+    <div id="reader-top-info" style="text-align:center; padding:20px;">
+        <h2 id="seri-adi" style="margin:0;"></h2>
+        <h4 id="bolum-adi" style="opacity:0.6;"></h4>
+    </div>
+
+    <div id="reader-content" class="reader-container">
+        <!-- Resimler veya Metin buraya gelecek -->
+    </div>
+
+    <div class="reader-nav">
+        <button class="nav-btn" onclick="prevBolum()">Önceki</button>
+        <button class="nav-btn" onclick="window.location.href='index.html'">Ana Sayfa</button>
+        <button class="nav-btn" onclick="nextBolum()">Sonraki</button>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const seri = params.get('seri');
+        const bolumNo = parseInt(params.get('bolum'));
+
+        async function loadReader() {
+            const res = await fetch(`data/chapters/${seri}.json`);
+            const chapters = await res.json();
+            const current = chapters.find(c => c.no === bolumNo);
+            const seriesInfo = (await (await fetch('data/series.json')).json()).find(s => s.id === seri);
+
+            document.getElementById('seri-adi').innerText = seriesInfo.title;
+            document.getElementById('bolum-adi').innerText = current.title;
+
+            const contentDiv = document.getElementById('reader-content');
+
+            if(seriesInfo.type === 'manhwa') {
+                // WEBTOON MODU: HTML içindeki img src'lerini bul ve dikey diz
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = current.content;
+                const images = tempDiv.querySelectorAll('img');
+                
+                images.forEach(img => {
+                    const cleanImg = document.createElement('img');
+                    cleanImg.src = img.src;
+                    cleanImg.loading = "lazy"; // Performans için
+                    contentDiv.appendChild(cleanImg);
+                });
+            } else {
+                // NOVEL MODU: Doğrudan metin olarak bas
+                contentDiv.innerHTML = `<div class="novel-text">${current.content.replace(/\n/g, '<br>')}</div>`;
+            }
+        }
+
+        function nextBolum() { window.location.href = `oku.html?seri=${seri}&bolum=${bolumNo + 1}`; }
+        function prevBolum() { window.location.href = `oku.html?seri=${seri}&bolum=${bolumNo - 1}`; }
+
+        loadReader();
+    </script>
+</body>
+</html>
