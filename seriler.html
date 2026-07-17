@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tüm Seriler | Mikrokosmos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { --mor: #7b1fa2; --koyu: #0b0314; --kart: rgba(255, 255, 255, 0.08); }
+        body { font-family: 'Nunito', sans-serif; background-color: var(--koyu); color: #fff; margin: 0; }
+        
+        /* Arkaplan */
+        .uzay-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background: linear-gradient(135deg, #05010a, #16051f); }
+
+        header { background: linear-gradient(to right, var(--mor), #3367D6); padding: 15px; text-align: center; }
+        header a { color: white; text-decoration: none; font-weight: bold; }
+
+        .container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+        
+        /* Alfabe Çubuğu */
+        .alphabet-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 30px; background: var(--kart); padding: 15px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); }
+        .alphabet-nav a { color: #aaa; text-decoration: none; font-weight: bold; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 5px; transition: 0.3s; }
+        .alphabet-nav a:hover { background: var(--mor); color: white; }
+
+        /* Grup Başlıkları (A, B, C...) */
+        .letter-group { margin-bottom: 40px; }
+        .letter-title { font-size: 30px; color: var(--mor); border-bottom: 2px solid var(--mor); margin-bottom: 20px; padding-left: 10px; }
+
+        /* Seri Listesi */
+        .series-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
+        .series-item { background: var(--kart); padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 15px; text-decoration: none; color: white; transition: 0.3s; border: 1px solid transparent; }
+        .series-item:hover { border-color: var(--mor); background: rgba(123, 31, 162, 0.1); transform: translateX(5px); }
+        .series-item img { width: 50px; height: 70px; object-fit: cover; border-radius: 5px; border: 1px solid var(--mor); }
+        .series-item b { font-size: 16px; }
+
+        @media (max-width: 600px) { .series-list { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="uzay-bg"></div>
+    <header><a href="index.html">MIKROKOSMOS FB - ANA SAYFA</a></header>
+
+    <div class="container">
+        <h1 style="text-align: center;"><i class="fa-solid fa-list-ul"></i> A-Z Seri Listesi</h1>
+        
+        <div class="alphabet-nav" id="alphabet-nav">
+            <!-- Alfabe JS ile buraya dolacak -->
+        </div>
+
+        <div id="list-container">
+            <!-- Gruplar JS ile buraya dolacak -->
+            <p style="text-align: center;">Galaksi taranıyor...</p>
+        </div>
+    </div>
+
+    <script>
+        async function loadAZList() {
+            const res = await fetch('data/series.json');
+            const data = await res.json();
+            
+            // Serileri isme göre sırala
+            data.sort((a, b) => a.title.localeCompare(b.title));
+
+            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+            const nav = document.getElementById('alphabet-nav');
+            const container = document.getElementById('list-container');
+            container.innerHTML = "";
+
+            // Alfabe butonlarını oluştur
+            alphabet.forEach(letter => {
+                nav.innerHTML += `<a href="#letter-${letter}">${letter}</a>`;
+                
+                // Bu harfle başlayan serileri filtrele
+                const filtered = data.filter(s => s.title.toUpperCase().startsWith(letter));
+
+                if(filtered.length > 0) {
+                    let html = `<div class="letter-group" id="letter-${letter}">
+                                    <div class="letter-title">${letter}</div>
+                                    <div class="series-list">`;
+                    
+                    filtered.forEach(s => {
+                        html += `
+                            <a href="seri-detay.html?id=${s.id}" class="series-item">
+                                <img src="${s.thumb}" onerror="this.src='https://via.placeholder.com/50x70'">
+                                <div>
+                                    <b>${s.title}</b><br>
+                                    <small style="opacity:0.5">${s.type.toUpperCase()}</small>
+                                </div>
+                            </a>
+                        `;
+                    });
+
+                    html += `</div></div>`;
+                    container.innerHTML += html;
+                }
+            });
+        }
+        window.onload = loadAZList;
+    </script>
+</body>
+</html>
