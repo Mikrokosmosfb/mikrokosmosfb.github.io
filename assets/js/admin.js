@@ -3,7 +3,9 @@
 // Global Değişkenler
 let gitConfig = {};
 let allSeries = [];
-let editingSeriesId = null; // Düzenleme modunu takip etmek için
+let editingSeriesId = null; // Seri düzenleme takibi
+let editingChapterId = null; // Bölüm düzenleme takibi
+let editingChapterSeriesId = null; // Düzenlenen bölümün ait olduğu seri
 
 // Sayfa Yüklendiğinde
 document.addEventListener("DOMContentLoaded", () => {
@@ -59,7 +61,7 @@ function saveConfig() {
                 location.reload();
             }, 1500);
         } else {
-            showStatus("setupMsg", "Bağlantı başarısız! Lütfen kullanıcı adı, repo veya token bilgisini kontrol edin.", "error");
+            showStatus("setupMsg", "Bağlantı başarısız! Bilgileri kontrol edin.", "error");
         }
     })
     .catch(err => {
@@ -83,7 +85,7 @@ function switchTab(tabName) {
     document.getElementById(`tab-${tabName}`).classList.add("active");
     document.getElementById(`nav-${tabName}`).classList.add("active");
 
-    if (tabName === "manage" || tabName === "chapters") {
+    if (tabName === "manage" || tabName === "chapters" || tabName === "manage-chapters") {
         fetchSeriesList();
     }
 }
@@ -107,21 +109,21 @@ function b64_to_utf8(str) {
     return decodeURIComponent(escape(atob(str)));
 }
 
-// ID (Slug) Üretici (Türkçe karakterleri ve boşlukları temizler)
+// ID (Slug) Üretici
 function generateSlug(text) {
     return text.toString().toLowerCase().trim()
-        .replace(/\s+/g, '-')           // Boşlukları - yap
+        .replace(/\s+/g, '-')
         .replace(/ğ/g, 'g')
         .replace(/ü/g, 'u')
         .replace(/ş/g, 's')
         .replace(/ı/g, 'i')
         .replace(/ö/g, 'o')
         .replace(/ç/g, 'c')
-        .replace(/[^a-z0-9\-]/g, '')    // İstenmeyen karakterleri sil
-        .replace(/\-+/g, '-');          // Birden fazla - işaretini teke düşür
+        .replace(/[^a-z0-9\-]/g, '')
+        .replace(/\-+/g, '-');
 }
 
-// --- GİTHUB API İLE DOSYA OKUMA VE YAZMA SİSTEMİ ---
+// --- GİTHUB API İLE DOSYA OKUMA, YAZMA VE SİLME SİSTEMİ ---
 
 // Depodan Dosya Getir
 async function getGithubFile(path) {
@@ -130,7 +132,7 @@ async function getGithubFile(path) {
         headers: { "Authorization": `token ${gitConfig.token}` }
     });
     if (response.status === 404) {
-        return { content: null, sha: null }; // Dosya henüz yoksa
+        return { content: null, sha: null }; // Dosya yoksa
     }
     const data = await response.json();
     return {
@@ -165,6 +167,49 @@ async function writeGithubFile(path, contentStr, sha = null, message = "Update f
     return await response.json();
 }
 
+// Depodan Dosya Sil (Yeni Eklenen API Özelliği)
+async function deleteGithubFile(path, sha, message = "Delete file via Admin Panel") {
+    const url = `https://api.github.com/repos/${gitConfig.user}/${gitConfig.repo}/contents/${path}`;
+    const body = {
+        message: message,
+        sha: sha,
+        branch: gitConfig.branch
+    };
+
+    const response = await fetch(url, {
+        method: "DELETE",
+        headers: {
+            "Authorization": `token ${gitConfig.token}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Dosya silinemedi.");
+    }
+    return await response.json();
+}
+
+// Depodaki Bir Klasörün Tüm İçeriğini Rekürsif Sil (Yeni Eklenen Otomatik Temizlik)
+async function deleteFolderContents(folderPath) {
+    const url = `https://api.github.com/repos/${gitConfig.user}/${gitConfig.repo}/contents/${folderPath}?ref=${gitConfig.branch}&t=` + new Date().getTime();
+    const response = await fetch(url, {
+        headers: { "Authorization": `token ${gitConfig.token}` }
+    });
+    if (response.status === 404) return; // Klasör zaten yoksa es geç
+
+    const files = await response.json();
+    if (Array.isArray(files)) {
+        for (const file of files) {
+            if (file.type === "file") {
+                await deleteGithubFile(file.path, file.sha, `Otomatik temizlik: ${file.name} silindi`);
+            }
+        }
+    }
+}
+
 // --- SERİ İŞLEMLERİ ---
 
 // Depodaki Serileri Çek
@@ -185,8 +230,9 @@ async function fetchSeriesList() {
 
 // Arayüzleri Seri Listesiyle Güncelle
 function renderSeriesUI() {
-    // 1. Bölüm Ekleme sayfasındaki select kutusunu sıfırla ve doldur
-    filterSeriesDropdown();
+    // 1. Bölüm Ekleme ve Bölüm Yönetme sekmelerindeki aramaları yenile
+    filterSeriesDropdown("chapterSeriesSearch", "chapterSeriesSelect");
+    filterSeriesDropdown("manageChapterSeriesSearch", "manageChapterSeriesSelect");
 
     // 2. Yönetim sekmesindeki listeyi doldur
     const listContainer = document.getElementById("seriesListContainer");
@@ -210,15 +256,14 @@ function renderSeriesUI() {
     }
 }
 
-// Hızlı Seri Arama & Seçim Dropdown Filtresi
-function filterSeriesDropdown() {
-    const query = document.getElementById("chapterSeriesSearch").value.trim().toLowerCase();
-    const select = document.getElementById("chapterSeriesSelect");
+// Hızlı Seri Arama Dropdown Filtresi
+function filterSeriesDropdown(searchInputId, selectId) {
+    const query = document.getElementById(searchInputId).value.trim().toLowerCase();
+    const select = document.getElementById(selectId);
     if (!select) return;
 
     select.innerHTML = '<option value="">Lütfen bir seri seçin...</option>';
     allSeries.forEach(s => {
-        // Eğer arama kutusu boşsa veya yazılan kelime seri adı/slug adında geçiyorsa listele
         if (query === "" || s.title.toLowerCase().includes(query) || s.id.toLowerCase().includes(query)) {
             select.innerHTML += `<option value="${s.id}">${s.title} (${s.type})</option>`;
         }
@@ -232,7 +277,6 @@ function editSeries(id) {
 
     editingSeriesId = id;
 
-    // Formu serinin mevcut bilgileriyle dolduralım
     document.getElementById("seriesTitle").value = series.title;
     document.getElementById("seriesSlug").value = series.id;
     document.getElementById("seriesAltTitle").value = series.altTitle || "";
@@ -244,16 +288,12 @@ function editSeries(id) {
     document.getElementById("seriesScore").value = series.score;
     document.getElementById("seriesIs18").checked = series.is18 || false;
 
-    // Arayüz başlıklarını güncelle
     document.getElementById("formTitle").innerHTML = `<i class="fa-solid fa-pen-to-square"></i> "${series.title}" Serisini Düzenle`;
     document.getElementById("btnSubmitSeries").innerText = "Değişiklikleri Kaydet (Güncelle)";
     document.getElementById("btnCancelEdit").style.display = "block";
     document.getElementById("editModeBadge").style.display = "block";
 
-    // Seri ekleme sekmesine otomatik geç
     switchTab("series");
-    
-    // Sayfayı forma odakla
     document.getElementById("formTitle").scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -261,7 +301,6 @@ function editSeries(id) {
 function cancelEdit() {
     editingSeriesId = null;
 
-    // Formu temizle
     document.getElementById("seriesTitle").value = "";
     document.getElementById("seriesSlug").value = "";
     document.getElementById("seriesAltTitle").value = "";
@@ -271,7 +310,6 @@ function cancelEdit() {
     document.getElementById("seriesScore").value = "8.5";
     document.getElementById("seriesIs18").checked = false;
 
-    // Arayüzü eski haline getir
     document.getElementById("formTitle").innerHTML = `<i class="fa-solid fa-book"></i> Yeni Seri Bilgileri`;
     document.getElementById("btnSubmitSeries").innerText = "Seriyi Depoya Commit Et";
     document.getElementById("btnCancelEdit").style.display = "none";
@@ -280,7 +318,7 @@ function cancelEdit() {
     switchTab("manage");
 }
 
-// Yeni/Düzenle Seri Kaydet (Submit)
+// Yeni/Düzenle Seri Kaydet
 async function submitSeries() {
     const title = document.getElementById("seriesTitle").value.trim();
     let slug = document.getElementById("seriesSlug").value.trim();
@@ -294,15 +332,14 @@ async function submitSeries() {
     const is18 = document.getElementById("seriesIs18").checked;
 
     if (!title || !description || !cover) {
-        showStatus("globalMsg", "Lütfen zorunlu alanları (Ad, Konu, Kapak Resmi) doldurun!", "error");
+        showStatus("globalMsg", "Lütfen tüm zorunlu alanları doldurun!", "error");
         return;
     }
 
-    // Eğer kullanıcı özel slug vermediyse otomatik üretelim
     if (!slug) {
         slug = generateSlug(title);
     } else {
-        slug = generateSlug(slug); // Özel girilse bile güvenli URL formatına süzüyoruz
+        slug = generateSlug(slug);
     }
     
     const genres = genresInput.split(",").map(g => g.trim()).filter(g => g.length > 0);
@@ -318,7 +355,7 @@ async function submitSeries() {
         genres: genres,
         score: score,
         is18: is18,
-        chapters: [] // Bölüm listesi
+        chapters: []
     };
 
     try {
@@ -326,20 +363,15 @@ async function submitSeries() {
         let list = fileData.content ? JSON.parse(fileData.content) : [];
         
         if (editingSeriesId) {
-            // --- DÜZENLEME MODU AKTİFSE ---
             const index = list.findIndex(s => s.id === editingSeriesId);
             if (index > -1) {
-                // Mevcut bölümleri kaybetmemek için yeni nesneye aktarıyoruz
                 targetSeries.chapters = list[index].chapters || [];
                 list[index] = targetSeries;
             }
         } else {
-            // --- YENİ SERİ EKLEME ---
             const existingIndex = list.findIndex(s => s.id === slug);
             if (existingIndex > -1) {
-                if (!confirm("Bu isimde veya linkte bir seri zaten mevcut. Güncellemek istiyor musunuz?")) {
-                    return;
-                }
+                if (!confirm("Bu isimde bir seri mevcut. Üzerine yazmak istiyor musunuz?")) return;
                 targetSeries.chapters = list[existingIndex].chapters || [];
                 list[existingIndex] = targetSeries;
             } else {
@@ -348,9 +380,8 @@ async function submitSeries() {
         }
 
         await writeGithubFile("data/series.json", JSON.stringify(list, null, 2), fileData.sha, `${title} serisi kaydedildi`);
-        showStatus("globalMsg", `"${title}" serisi başarıyla GitHub deponuza kaydedildi!`, "success");
+        showStatus("globalMsg", `"${title}" serisi başarıyla kaydedildi!`, "success");
         
-        // Düzenleme modunu sıfırla
         editingSeriesId = null;
         cancelEdit();
         fetchSeriesList();
@@ -359,28 +390,33 @@ async function submitSeries() {
     }
 }
 
-// Seri Sil
+// Seri Sil (Klasördeki tüm bölümleri de otomatik temizler!)
 async function deleteSeries(id) {
-    if (!confirm("Bu seriyi ve ona bağlı tüm meta verileri silmek istediğinize emin misiniz?")) {
+    if (!confirm("Bu seriyi, ona bağlı tüm bölümleri ve deponuzdaki TÜM içerik dosyalarını kalıcı olarak silmek istediğinize emin misiniz?")) {
         return;
     }
 
     try {
+        showStatus("globalMsg", "Depodaki bölüm dosyaları ve meta veriler otomatik siliniyor, lütfen bekleyin...", "success");
+
+        // 1. Serinin "data/chapters/{id}/" altındaki tüm bölüm dosyalarını depodan temizle
+        await deleteFolderContents(`data/chapters/${id}`);
+
+        // 2. data/series.json dosyasından seriyi kaldır
         const fileData = await getGithubFile("data/series.json");
         let list = JSON.parse(fileData.content);
         list = list.filter(s => s.id !== id);
 
-        await writeGithubFile("data/series.json", JSON.stringify(list, null, 2), fileData.sha, `${id} serisi silindi`);
-        showStatus("globalMsg", "Seri başarıyla silindi!", "success");
+        await writeGithubFile("data/series.json", JSON.stringify(list, null, 2), fileData.sha, `${id} serisi ve klasörü tamamen silindi`);
+        showStatus("globalMsg", "Seri ve tüm içerikleri başarıyla depodan silindi!", "success");
         fetchSeriesList();
     } catch (err) {
-        showStatus("globalMsg", "Seri silinirken hata: " + err.message, "error");
+        showStatus("globalMsg", "Silme işlemi sırasında hata: " + err.message, "error");
     }
 }
 
 // --- BÖLÜM İŞLEMLERİ ---
 
-// İçerik tipine göre text-area kutularını gizle/göster
 function toggleContentInputs() {
     const type = document.getElementById("chapterContentType").value;
     if (type === "webtoon") {
@@ -392,7 +428,6 @@ function toggleContentInputs() {
     }
 }
 
-// HTML kodlarından resim linklerini ayıklayan akıllı parser
 function parseWebtoonImages(input) {
     const urls = [];
     const imgRegex = /<img[^>]+src="([^">]+)"/g;
@@ -406,7 +441,7 @@ function parseWebtoonImages(input) {
     return urls;
 }
 
-// Yeni Bölüm Ekle ve Commit Et
+// Bölüm Kaydet (Yeni Ekleme veya Güncelleme)
 async function submitChapter() {
     const seriesId = document.getElementById("chapterSeriesSelect").value;
     const title = document.getElementById("chapterTitle").value.trim();
@@ -422,21 +457,21 @@ async function submitChapter() {
         return;
     }
 
-    const chapterId = generateSlug(title);
+    const chapterId = editingChapterId ? editingChapterId : generateSlug(title);
     let finalContent = "";
 
     if (contentType === "webtoon") {
         const rawContent = document.getElementById("webtoonContent").value;
         const parsedImages = parseWebtoonImages(rawContent);
         if (parsedImages.length === 0) {
-            showStatus("globalMsg", "Lütfen webtoon resim linklerini veya embed kodlarını girin!", "error");
+            showStatus("globalMsg", "Lütfen resim linklerini girin!", "error");
             return;
         }
         finalContent = parsedImages;
     } else {
         const rawContent = document.getElementById("novelContent").value.trim();
         if (!rawContent) {
-            showStatus("globalMsg", "Lütfen novel metnini boş bırakmayın!", "error");
+            showStatus("globalMsg", "Lütfen novel metnini girin!", "error");
             return;
         }
         finalContent = rawContent;
@@ -453,13 +488,14 @@ async function submitChapter() {
     };
 
     try {
-        // 1. Bölümün ham içeriğini deponun "data/chapters/[seriesId]/[chapterId].json" konumuna kaydet
+        showStatus("globalMsg", "Bölüm dosyası deponuza yazılıyor...", "success");
+
+        // 1. Bölümün JSON dosyasını yaz/güncelle
         const path = `data/chapters/${seriesId}/${chapterId}.json`;
         const existingFile = await getGithubFile(path);
-        
-        await writeGithubFile(path, JSON.stringify(chapterPayload, null, 2), existingFile.sha, `${seriesId} - ${title} içeriği eklendi`);
+        await writeGithubFile(path, JSON.stringify(chapterPayload, null, 2), existingFile.sha, `${seriesId} - ${title} kaydedildi`);
 
-        // 2. Ana data/series.json dosyasını güncelle
+        // 2. data/series.json dosyasındaki bölüm meta verisini güncelle
         const seriesFileData = await getGithubFile("data/series.json");
         let seriesList = JSON.parse(seriesFileData.content);
         const targetSeriesIndex = seriesList.findIndex(s => s.id === seriesId);
@@ -483,18 +519,154 @@ async function submitChapter() {
                 seriesList[targetSeriesIndex].chapters.push(chapterMeta);
             }
 
-            await writeGithubFile("data/series.json", JSON.stringify(seriesList, null, 2), seriesFileData.sha, `${seriesId} serisine ${title} bölüm listesi eklendi`);
+            await writeGithubFile("data/series.json", JSON.stringify(seriesList, null, 2), seriesFileData.sha, `${seriesId} serisine ${title} eklendi`);
         }
 
-        showStatus("globalMsg", `"${title}" başarıyla yüklendi ve seriye eklendi!`, "success");
-        
-        // Formları temizle
-        document.getElementById("chapterTitle").value = "";
-        document.getElementById("webtoonContent").value = "";
-        document.getElementById("novelContent").value = "";
-        document.getElementById("chapterSeriesSearch").value = "";
-        filterSeriesDropdown();
+        showStatus("globalMsg", `"${title}" başarıyla kaydedildi!`, "success");
+        cancelChapterEdit();
     } catch (err) {
-        showStatus("globalMsg", "Bölüm yüklenirken hata oluştu: " + err.message, "error");
+        showStatus("globalMsg", "Bölüm kaydedilirken hata: " + err.message, "error");
+    }
+}
+
+// --- YENİ EKLENEN BÖLÜMLERİ YÖNETME (DÜZENLE / SİL) FONKSİYONLARI ---
+
+// Seçilen serinin bölümlerini yönetim dropdown listesine yükle
+function loadChaptersForManagement(seriesId) {
+    const area = document.getElementById("manageChaptersDropdownArea");
+    const select = document.getElementById("manageChapterSelect");
+    if (!seriesId) {
+        area.style.display = "none";
+        return;
+    }
+
+    const series = allSeries.find(s => s.id === seriesId);
+    if (!series || !series.chapters || series.chapters.length === 0) {
+        select.innerHTML = '<option value="">Bu seride hiç bölüm bulunmuyor.</option>';
+        area.style.display = "block";
+        return;
+    }
+
+    select.innerHTML = '<option value="">Düzenlemek veya silmek istediğiniz bölümü seçin...</option>';
+    series.chapters.forEach(ch => {
+        select.innerHTML += `<option value="${ch.id}">${ch.title}</option>`;
+    });
+    area.style.display = "block";
+}
+
+// Bölüm Düzenleme Modunu Başlat
+async function startEditChapter() {
+    const seriesId = document.getElementById("manageChapterSeriesSelect").value;
+    const chapterId = document.getElementById("manageChapterSelect").value;
+
+    if (!seriesId || !chapterId) {
+        alert("Lütfen önce bir seri ve bir bölüm seçin.");
+        return;
+    }
+
+    try {
+        showStatus("globalMsg", "Bölüm içeriği depodan çekiliyor, lütfen bekleyin...", "success");
+        const fileData = await getGithubFile(`data/chapters/${seriesId}/${chapterId}.json`);
+        
+        if (!fileData.content) {
+            throw new Error("Bölüm dosyası depoda bulunamadı.");
+        }
+
+        const chData = JSON.parse(fileData.content);
+
+        editingChapterId = chapterId;
+        editingChapterSeriesId = seriesId;
+
+        // Bölüm ekleme formunu doldur
+        document.getElementById("chapterSeriesSelect").value = seriesId;
+        document.getElementById("chapterTitle").value = chData.title;
+        document.getElementById("chapterIs18").checked = chData.is18 || false;
+        document.getElementById("chapterContentType").value = chData.type;
+        toggleContentInputs();
+
+        if (chData.type === "webtoon") {
+            // Dizi olarak gelen resim linklerini tekrar alt alta text haline getiriyoruz
+            document.getElementById("webtoonContent").value = chData.content.join("\n");
+        } else {
+            document.getElementById("novelContent").value = chData.content;
+        }
+
+        // Arayüzü Düzenleme Moduna Çek
+        document.getElementById("chapterFormTitle").innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Bölümü Düzenle: ${chData.title}`;
+        document.getElementById("btnSubmitChapter").innerText = "Değişiklikleri Kaydet (Bölümü Güncelle)";
+        document.getElementById("btnCancelChapterEdit").style.display = "block";
+        document.getElementById("chEditModeBadge").style.display = "block";
+
+        // Tabı değiştirerek formu göster
+        switchTab("chapters");
+    } catch (err) {
+        showStatus("globalMsg", "Bölüm içeriği yüklenemedi: " + err.message, "error");
+    }
+}
+
+// Bölüm Düzenlemeyi İptal Et
+function cancelChapterEdit() {
+    editingChapterId = null;
+    editingChapterSeriesId = null;
+
+    document.getElementById("chapterTitle").value = "";
+    document.getElementById("chapterIs18").checked = false;
+    document.getElementById("webtoonContent").value = "";
+    document.getElementById("novelContent").value = "";
+
+    document.getElementById("chapterFormTitle").innerHTML = `<i class="fa-solid fa-file-circle-plus"></i> Bölüm Bilgileri`;
+    document.getElementById("btnSubmitChapter").innerText = "Bölümü Depoya Commit Et";
+    document.getElementById("btnCancelChapterEdit").style.display = "none";
+    document.getElementById("chEditModeBadge").style.display = "none";
+
+    switchTab("manage-chapters");
+    document.getElementById("manageChaptersDropdownArea").style.display = "none";
+    document.getElementById("manageChapterSeriesSelect").value = "";
+    document.getElementById("manageChapterSeriesSearch").value = "";
+}
+
+// Bölümü Tamamen Sil (Hem depodan hem de data/series.json listesinden!)
+async function deleteChapter() {
+    const seriesId = document.getElementById("manageChapterSeriesSelect").value;
+    const chapterId = document.getElementById("manageChapterSelect").value;
+
+    if (!seriesId || !chapterId) {
+        alert("Lütfen önce bir seri ve silmek istediğiniz bölümü seçin.");
+        return;
+    }
+
+    if (!confirm("Bu bölümü ve depodaki tüm ham içerik dosyasını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.")) {
+        return;
+    }
+
+    try {
+        showStatus("globalMsg", "Bölüm dosyaları depodan siliniyor, lütfen bekleyin...", "success");
+
+        // 1. data/chapters/{seriesId}/{chapterId}.json dosyasının SHA'sını al ve sil
+        const path = `data/chapters/${seriesId}/${chapterId}.json`;
+        const fileData = await getGithubFile(path);
+        if (fileData.sha) {
+            await deleteGithubFile(path, fileData.sha, `${seriesId} - ${chapterId} bölüm dosyası silindi`);
+        }
+
+        // 2. data/series.json dosyasından bölüm meta verisini kaldır
+        const seriesFileData = await getGithubFile("data/series.json");
+        let list = JSON.parse(seriesFileData.content);
+        const sIndex = list.findIndex(s => s.id === seriesId);
+
+        if (sIndex > -1 && list[sIndex].chapters) {
+            list[sIndex].chapters = list[sIndex].chapters.filter(ch => ch.id !== chapterId);
+            await writeGithubFile("data/series.json", JSON.stringify(list, null, 2), seriesFileData.sha, `${seriesId} serisinden ${chapterId} bölümü silindi`);
+        }
+
+        showStatus("globalMsg", "Bölüm başarıyla silindi ve temizlendi!", "success");
+        
+        // UI güncelle
+        document.getElementById("manageChaptersDropdownArea").style.display = "none";
+        document.getElementById("manageChapterSeriesSelect").value = "";
+        document.getElementById("manageChapterSeriesSearch").value = "";
+        fetchSeriesList();
+    } catch (err) {
+        showStatus("globalMsg", "Bölüm silinirken hata: " + err.message, "error");
     }
 }
