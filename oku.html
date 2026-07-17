@@ -2,113 +2,66 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mikrokosmos Okuyucu</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
-    
+    <link rel="stylesheet" href="assets/css/style.css">
     <style>
-        :root { --mor: #7b1fa2; --koyu: #0b0314; }
-        body { font-family: 'Nunito', sans-serif; background-color: #000; color: #fff; margin: 0; }
-        
-        /* Üst Kontrol Barı */
-        .reader-header { background: rgba(11, 3, 20, 0.9); padding: 15px; position: fixed; top: 0; width: 100%; z-index: 1000; border-bottom: 1px solid var(--mor); text-align: center; }
-        .reader-header h2 { margin: 0; font-size: 18px; color: var(--mor); }
-        .reader-header p { margin: 5px 0 0; font-size: 14px; opacity: 0.7; }
-
-        /* İçerik Alanı */
-        .content-area { margin-top: 80px; margin-bottom: 80px; width: 100%; }
-        
-        /* Webtoon/Manhwa Resimleri */
-        .manhwa-container img { width: 100%; display: block; height: auto; }
-
-        /* Novel Metni */
-        .novel-container { max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.8; font-size: 20px; color: #ddd; background: #111; border-radius: 10px; }
-
-        /* Alt Navigasyon */
-        .reader-nav { position: fixed; bottom: 0; width: 100%; background: rgba(11, 3, 20, 0.95); padding: 15px 0; display: flex; justify-content: center; gap: 10px; border-top: 1px solid var(--mor); }
-        .nav-btn { background: var(--mor); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; text-decoration: none; font-size: 14px; }
-        .nav-btn.disabled { background: #333; cursor: not-allowed; opacity: 0.5; }
+        /* Okuyucuya Özel Orijinal Kodlar */
+        .check-box img { width: 100%; display: block; margin: 0 auto; }
+        .Novel { max-width: 800px; margin: 0 auto; background: white; color: black; padding: 30px; line-height: 1.8; }
+        .dark-mode .Novel { background: #222; color: #ccc; }
     </style>
 </head>
-<body>
+<body class="pv"> <!-- XML'deki post view class'ı -->
+    <div id="Atprogressbar" class="Atprogress-bar"></div>
 
-    <div class="reader-header">
-        <h2 id="seri-adi">Yükleniyor...</h2>
-        <p id="bolum-adi"></p>
-    </div>
+    <div class="max-w mla mra pen c-999 mt-35 full oh">
+        <h1 id="reader-title" class="m-0 fs-25 tac c-ddd fs-20"></h1>
+        
+        <!-- Orijinal nPL Dropdown (Bölüm Seçici) -->
+        <div class="nPL-show" id="nPL"></div>
 
-    <div class="content-area" id="reader-content">
-        <!-- İçerik JS ile buraya basılacak -->
-    </div>
+        <div id="reader-content" class="check-box">
+            <!-- Buraya resimler veya metin gelecek -->
+        </div>
 
-    <div class="reader-nav">
-        <a id="prevBtn" class="nav-btn">← Önceki</a>
-        <a href="index.html" class="nav-btn"><i class="fa-solid fa-home"></i></a>
-        <a id="nextBtn" class="nav-btn">Sonraki →</a>
+        <div class="nPL-show" id="nPL2"></div>
     </div>
 
     <script>
         const params = new URLSearchParams(window.location.search);
-        const seriId = params.get('seri');
-        const bolumNo = parseInt(params.get('bolum'));
+        const seri = params.get('seri');
+        const no = parseInt(params.get('bolum'));
 
-        async function initReader() {
-            try {
-                // 1. Seri bilgilerini al
-                const sRes = await fetch('data/series.json');
-                const allSeries = await sRes.json();
-                const s = allSeries.find(item => item.id === seriId);
-                document.getElementById('seri-adi').innerText = s.title;
+        async function loadReader() {
+            const res = await fetch(`data/chapters/${seri}.json`);
+            const chapters = await res.json();
+            const current = chapters.find(c => c.no === no);
+            
+            document.getElementById('reader-title').innerText = current.title;
+            const out = document.getElementById('reader-content');
 
-                // 2. Bölüm verisini al
-                const cRes = await fetch(`data/chapters/${seriId}.json?t=` + new Date().getTime());
-                const chapters = await cRes.json();
-                const c = chapters.find(item => item.no === bolumNo);
-                document.getElementById('bolum-adi').innerText = c.title;
-
-                const container = document.getElementById('reader-content');
-
-                if(s.type === 'manhwa') {
-                    // MANHWA MODU: Imgbox HTML kodlarından sadece resim linklerini ayıkla
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = c.content;
-                    const images = tempDiv.querySelectorAll('img');
-                    
-                    let html = '<div class="manhwa-container">';
-                    images.forEach(img => {
-                        html += `<img src="${img.src}" loading="lazy" onerror="this.style.display='none'">`;
-                    });
-                    html += '</div>';
-                    container.innerHTML = html;
-                } else {
-                    // NOVEL MODU: Metni direkt bas (Satır başlarını koru)
-                    container.innerHTML = `<div class="novel-container">${c.content.replace(/\n/g, '<br>')}</div>`;
-                }
-
-                // 3. Navigasyon Butonları
-                const hasPrev = chapters.some(item => item.no === bolumNo - 1);
-                const hasNext = chapters.some(item => item.no === bolumNo + 1);
-
-                const pBtn = document.getElementById('prevBtn');
-                const nBtn = document.getElementById('nextBtn');
-
-                if(hasPrev) pBtn.href = `oku.html?seri=${seriId}&bolum=${bolumNo - 1}`;
-                else pBtn.classList.add('disabled');
-
-                if(hasNext) nBtn.href = `oku.html?seri=${seriId}&bolum=${bolumNo + 1}`;
-                else nBtn.classList.add('disabled');
-
-                // Sayfayı en üste kaydır
-                window.scrollTo(0,0);
-
-            } catch (e) {
-                console.error(e);
-                alert("Bölüm yüklenemedi!");
+            // XML'deki mantık: Manhwa ise img etiketlerini ayıkla, Novel ise metin bas
+            if(current.content.includes('<img')) {
+                // Manhwa Modu (Imgbox HTML temizleme)
+                const div = document.createElement('div');
+                div.innerHTML = current.content;
+                const imgs = div.querySelectorAll('img');
+                out.innerHTML = Array.from(imgs).map(i => `<img src="${i.src}" loading="lazy">`).join('');
+            } else {
+                // Novel Modu
+                out.classList.add('Novel');
+                out.innerHTML = current.content.replace(/\n/g, '<br>');
             }
         }
+        loadReader();
 
-        window.onload = initReader;
+        // Orijinal Progress Bar Mantığı
+        window.onscroll = function() {
+            let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            let scrolled = (winScroll / height) * 100;
+            document.getElementById("Atprogressbar").style.width = scrolled + "%";
+        };
     </script>
 </body>
 </html>
