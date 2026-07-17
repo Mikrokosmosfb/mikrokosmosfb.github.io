@@ -1,63 +1,72 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <title>MK - Galaktik Kontrol Paneli</title>
-    <link rel="stylesheet" href="assets/css/main.css">
-    <link rel="stylesheet" href="assets/css/admin.css">
-</head>
-<body class="admin-body">
-    <div id="login-overlay">
-        <div class="admin-card">
-            <h2><i class="fa-solid fa-key"></i> Giriş Yap</h2>
-            <input type="password" id="admin-pass" placeholder="Admin Şifresi">
-            <input type="text" id="gh-token" placeholder="GitHub PAT (Token)">
-            <button onclick="checkAdmin()">Sistemi Aç</button>
-        </div>
+<!-- Admin Panel İçeriği -->
+<div class="admin-wrapper" style="padding:40px; max-width:600px; margin:auto;">
+    <h1 style="color:var(--primary-purple)">🚀 Galaksi Yönetim Paneli</h1>
+    
+    <!-- GitHub Ayarları (Bir kez doldurulur) -->
+    <div class="admin-section" style="background:#1a1026; padding:20px; border-radius:10px; margin-bottom:20px;">
+        <h3>⚙️ API Bağlantısı</h3>
+        <input type="text" id="gh-token" placeholder="GitHub PAT (Token)" style="width:100%; margin-bottom:10px;">
+        <input type="text" id="gh-repo" placeholder="Kullanici/Repo-Adi" style="width:100%;">
+        <button onclick="saveSettings()" style="margin-top:10px; background:green; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">Ayarları Kaydet</button>
     </div>
 
-    <div id="admin-panel" style="display:none;">
-        <header class="admin-header">
-            <h1>Kontrol Merkezi</h1>
-            <button onclick="logout()">Çıkış</button>
-        </header>
-
-        <div class="admin-container">
-            <!-- Seri Ekleme Formu -->
-            <section class="admin-section">
-                <h2>Yeni Seri Ekle</h2>
-                <form id="series-form">
-                    <input type="text" id="s-title" placeholder="Seri Adı" required>
-                    <input type="text" id="s-thumb" placeholder="Kapak Resmi URL">
-                    <select id="s-type">
-                        <option value="manhwa">Manhwa</option>
-                        <option value="novel">Novel</option>
-                    </select>
-                    <input type="text" id="s-genres" placeholder="Türler (Virgülle ayır)">
-                    <textarea id="s-desc" placeholder="Seri Özeti"></textarea>
-                    <button type="button" onclick="saveSeries()">Seriyi Galaksiye Ekle</button>
-                </form>
-            </section>
-
-            <!-- Bölüm Ekleme Formu -->
-            <section class="admin-section">
-                <h2>Bölüm Yükle</h2>
-                <form id="chapter-form">
-                    <select id="target-series"><!-- JS ile dolacak --></select>
-                    <input type="text" id="c-title" placeholder="Bölüm Başlığı (Örn: Bölüm 01)">
-                    
-                    <div class="content-type-toggle">
-                        <button type="button" onclick="toggleMode('webtoon')">Webtoon (Imgbox/HTML)</button>
-                        <button type="button" onclick="toggleMode('novel')">Novel (Metin)</button>
-                    </div>
-
-                    <textarea id="c-content" placeholder="İçeriği buraya yapıştırın..."></textarea>
-                    <button type="button" onclick="publishChapter()">Bölümü Yayınla</button>
-                </form>
-            </section>
-        </div>
+    <!-- Yeni Seri Ekleme -->
+    <div class="admin-section" style="background:#1a1026; padding:20px; border-radius:10px;">
+        <h3>📚 Yeni Seri Ekle</h3>
+        <input type="text" id="s-id" placeholder="seri-id (Örn: solo-leveling)" style="width:100%; margin-bottom:10px;">
+        <input type="text" id="s-title" placeholder="Seri Tam Adı" style="width:100%; margin-bottom:10px;">
+        <input type="text" id="s-thumb" placeholder="Kapak Resmi Linki" style="width:100%; margin-bottom:10px;">
+        <select id="s-type" style="width:100%; margin-bottom:10px; padding:10px;">
+            <option value="manhwa">Manhwa / Webtoon</option>
+            <option value="novel">Web Novel</option>
+        </select>
+        <textarea id="s-desc" placeholder="Seri Özeti" style="width:100%; height:100px; margin-bottom:10px;"></textarea>
+        <button onclick="addNewSeries()" style="width:100%; background:var(--primary-purple); color:white; border:none; padding:15px; border-radius:5px; font-weight:bold; cursor:pointer;">SERİYİ YAYINLA</button>
     </div>
+</div>
 
-    <script src="assets/js/admin-gh.js"></script>
-</body>
-</html>
+<script>
+async function addNewSeries() {
+    const token = document.getElementById('gh-token').value;
+    const repo = document.getElementById('gh-repo').value; // format: "kullanici/repo"
+    
+    // Mevcut series.json'u çek
+    const url = `https://api.github.com/repos/${repo}/contents/data/series.json`;
+    let sha = "";
+    let currentData = [];
+
+    try {
+        const res = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
+        const file = await res.json();
+        sha = file.sha;
+        currentData = JSON.parse(decodeURIComponent(escape(atob(file.content))));
+    } catch(e) {}
+
+    // Yeni seriyi objeye ekle
+    const newEntry = {
+        id: document.getElementById('s-id').value,
+        title: document.getElementById('s-title').value,
+        type: document.getElementById('s-type').value,
+        thumb: document.getElementById('s-thumb').value,
+        desc: document.getElementById('s-desc').value,
+        status: "Devam Ediyor"
+    };
+
+    currentData.push(newEntry);
+
+    // GitHub'a geri gönder
+    const body = {
+        message: `Yeni Seri: ${newEntry.title}`,
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(currentData, null, 2)))),
+        sha: sha
+    };
+
+    const pushRes = await fetch(url, {
+        method: 'PUT',
+        headers: { 'Authorization': `token ${token}` },
+        body: JSON.stringify(body)
+    });
+
+    if(pushRes.ok) alert("Seri başarıyla eklendi! Sitenin güncellenmesi 1-2 dakika sürebilir.");
+}
+</script>
