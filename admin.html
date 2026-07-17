@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>MK - Galaktik Kontrol Paneli</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body class="admin-body">
+    <div id="login-overlay">
+        <div class="admin-card">
+            <h2><i class="fa-solid fa-key"></i> Giriş Yap</h2>
+            <input type="password" id="admin-pass" placeholder="Admin Şifresi">
+            <input type="text" id="gh-token" placeholder="GitHub PAT (Token)">
+            <button onclick="checkAdmin()">Sistemi Aç</button>
+        </div>
+    </div>
+
+    <div id="admin-panel" style="display:none;">
+        <header class="admin-header">
+            <h1>Kontrol Merkezi</h1>
+            <button onclick="logout()">Çıkış</button>
+        </header>
+
+        <div class="admin-container">
+            <!-- Seri Ekleme Formu -->
+            <section class="admin-section">
+                <h2>Yeni Seri Ekle</h2>
+                <form id="series-form">
+                    <input type="text" id="s-title" placeholder="Seri Adı" required>
+                    <input type="text" id="s-thumb" placeholder="Kapak Resmi URL">
+                    <select id="s-type">
+                        <option value="manhwa">Manhwa</option>
+                        <option value="novel">Novel</option>
+                    </select>
+                    <input type="text" id="s-genres" placeholder="Türler (Virgülle ayır)">
+                    <textarea id="s-desc" placeholder="Seri Özeti"></textarea>
+                    <button type="button" onclick="saveSeries()">Seriyi Galaksiye Ekle</button>
+                </form>
+            </section>
+
+            <!-- Bölüm Ekleme Formu -->
+            <section class="admin-section">
+                <h2>Bölüm Yükle</h2>
+                <form id="chapter-form">
+                    <select id="target-series"><!-- JS ile dolacak --></select>
+                    <input type="text" id="c-title" placeholder="Bölüm Başlığı (Örn: Bölüm 01)">
+                    
+                    <div class="content-type-toggle">
+                        <button type="button" onclick="toggleMode('webtoon')">Webtoon (Imgbox/HTML)</button>
+                        <button type="button" onclick="toggleMode('novel')">Novel (Metin)</button>
+                    </div>
+
+                    <textarea id="c-content" placeholder="İçeriği buraya yapıştırın..."></textarea>
+                    <button type="button" onclick="publishChapter()">Bölümü Yayınla</button>
+                </form>
+            </section>
+        </div>
+    </div>
+
+    <script src="assets/js/admin-gh.js"></script>
+</body>
+</html>
