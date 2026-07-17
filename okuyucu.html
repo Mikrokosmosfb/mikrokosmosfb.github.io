@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        /* Okuyucu Sayfasına Özel Tasarımlar */
         .reader-nav-bar {
             background: #17151b;
             padding: 10px 0;
@@ -23,7 +22,6 @@
             margin: 20px auto;
             padding: 10px;
         }
-        /* Navigasyon Butonları ve Seçici */
         .nav-controls {
             display: flex;
             justify-content: space-between;
@@ -63,7 +61,6 @@
             max-width: 250px;
             text-align: center;
         }
-        /* Webtoon Görünümü */
         .webtoon-area {
             display: flex;
             flex-direction: column;
@@ -80,7 +77,6 @@
             display: block;
             margin: 0 auto;
         }
-        /* Novel Okuyucu Özelleştirme Paneli */
         .novel-settings-panel {
             background: #7812a3;
             color: white;
@@ -126,7 +122,6 @@
         .novel-content-box p {
             margin-bottom: 1.5em;
         }
-        /* Otomatik Kaydırma Durdurma Butonu */
         #stopScrollBtn {
             display: none;
             position: fixed;
@@ -143,7 +138,6 @@
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
-        /* +18 Uyarı Pop-up */
         .resWarn {
             position: fixed;
             inset: 0;
@@ -182,6 +176,8 @@
         }
     </script>
 
+    <span class="rippleff" id="clickRipple"></span>
+
     <!-- +18 Yaş Onay Pop-up -->
     <div id="ageWarning" class="resWarn">
         <div class="resFile">
@@ -192,23 +188,58 @@
         </div>
     </div>
 
-    <!-- Üst Kontrol Barı -->
-    <div class="reader-nav-bar">
-        <div class="max-w flex jcsb aic">
-            <a href="index.html" class="header-logo" style="font-size: 18px;"><i class="fa-solid fa-space-awesome"></i> MİKROKOSMOS</a>
-            <a id="backToSeriesLink" href="#" style="color: white; font-weight: bold; font-size: 13px;"><i class="fa-solid fa-arrow-left"></i> Seri Sayfasına Dön</a>
+    <!-- Birebir Görsel Header (Row 1) -->
+    <header>
+        <div class="max-w header-container">
+            <div class="flex aic gap-15">
+                <i class="fa-solid fa-bars menu-toggle-btn" onclick="toggleMobileMenu()"></i>
+                <a href="index.html" class="header-logo-link">
+                    <img src="https://blogger.googleusercontent.com/img/a/AVvXsEjVv-oixP9NPWX-EcVGiGKMIFaWlrv0HtFrJ3KtPJGPZbNkMdKV2ZTHYXWwtd0YxXZXsTQVzfEJK9ZZrQwygaVXjn99XAsmIy7FVUtAhMGNpqm9wyB17Dsx-CQebDnTfplj3wY5qv-smuQFxobZNLa340zpSjDlx-pPmlv1_o3JyIOiG-Oy_kJLU-ww=s783" alt="Mikrokosmos Logo">
+                </a>
+            </div>
+            
+            <nav class="header-nav" id="headerNav">
+                <a href="index.html"><i class="fa-solid fa-house"></i> Ana Sayfa</a>
+                <a href="seriler.html"><i class="fa-solid fa-list-ul"></i> Seriler</a>
+                <a href="seriler.html"><i class="fa-solid fa-table-cells-large"></i> Katagoriler</a>
+                <a href="seriler.html"><i class="fa-solid fa-arrow-down-a-z"></i> A-Z Liste</a>
+                <div class="dropdown">
+                    <a href="#" class="dropbtn"><i class="fa-solid fa-circle-nodes"></i> Diğer <i class="fa-solid fa-caret-down"></i></a>
+                    <div class="dropdown-content">
+                        <a href="https://discord.gg/5d6sseKRfs" target="_blank">- Discord</a>
+                        <a href="#">- Ekip Başvuru</a>
+                        <a href="#">- İstek Paneli</a>
+                        <a href="#">- Sorun Bildir</a>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="flex aic gap-15">
+                <div class="dark-mode-container">
+                    <label class="switch">
+                        <input type="checkbox" id="darkModeToggle" onclick="toggleDarkMode()">
+                        <span class="slider-round"></span>
+                    </label>
+                </div>
+
+                <div class="search-container">
+                    <input type="text" id="liveSearchInput" placeholder="Bu blogda ara">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <div id="resLive"></div>
+                </div>
+
+                <a href="bookmark.html" class="kutuphane-btn"><i class="fa-solid fa-book"></i> Kütüphane</a>
+            </div>
         </div>
-    </div>
+    </header>
 
     <!-- Okuyucu Ana Konteyneri -->
-    <div class="reader-container">
-        <!-- Başlık Bölümü -->
+    <div class="reader-container" style="margin-top: 30px;">
         <div style="text-align: center; margin-bottom: 20px;">
             <h1 id="chapterTitle" style="font-size: 24px; margin-bottom: 5px; color: var(--primary-color);">Yükleniyor...</h1>
             <p id="seriesSubTitle" style="margin: 0; font-size: 14px; opacity: 0.7;">...</p>
         </div>
 
-        <!-- Üst Navigasyon Butonları -->
         <div class="nav-controls">
             <a id="prevBtnTop" href="#" class="disabled"><i class="fa-solid fa-chevron-left"></i> Önceki</a>
             <select id="chapterSelect" onchange="jumpToChapter(this.value)">
@@ -270,7 +301,6 @@
             </div>
         </div>
 
-        <!-- İÇERİK ALANI -->
         <div id="readerContentArea">
             <div style="text-align: center; padding: 100px 0;">
                 <i class="fa-solid fa-spinner fa-spin" style="font-size: 35px; color: var(--primary-color);"></i>
@@ -278,7 +308,6 @@
             </div>
         </div>
 
-        <!-- Alt Navigasyon Butonları -->
         <div class="nav-controls" style="margin-top: 30px;">
             <a id="prevBtnBottom" href="#" class="disabled"><i class="fa-solid fa-chevron-left"></i> Önceki Bölüm</a>
             <a id="nextBtnBottom" href="#" class="disabled">Sonraki Bölüm <i class="fa-solid fa-chevron-right"></i></a>
@@ -287,7 +316,12 @@
 
     <button id="stopScrollBtn" onclick="stopAutoScroll()"><i class="fa-solid fa-pause"></i> Kaydırmayı Durdur</button>
 
+    <script src="assets/js/app.js"></script>
     <script>
+        function toggleMobileMenu() {
+            document.getElementById("headerNav").classList.toggle("active");
+        }
+
         let seriesId = "";
         let chapterId = "";
         let currentChapterData = null;
@@ -373,7 +407,6 @@
                 applySavedNovelStyles();
             }
 
-            // Bu bölümü okundu geçmişine otomatik kaydediyoruz
             try {
                 let readHistory = JSON.parse(localStorage.getItem("mikro_read_history_" + seriesId) || "[]");
                 if (!readHistory.includes(chapterId)) {
