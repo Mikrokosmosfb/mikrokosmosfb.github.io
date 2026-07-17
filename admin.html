@@ -2,209 +2,127 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mikrokosmos - Kontrol Merkezi</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>Mikrokosmos Galaktik Panel</title>
     <style>
-        :root { --mor: #7b1fa2; --koyu: #0b0314; --panel: #1a1026; --yazi: #f3e8ff; }
-        body { font-family: 'Nunito', sans-serif; background-color: var(--koyu); color: var(--yazi); margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; }
-        .card { background: var(--panel); padding: 25px; border-radius: 15px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); }
-        h1, h2, h3 { color: var(--mor); margin-top: 0; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
-        input, textarea, select { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; background: var(--mor); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:hover { opacity: 0.8; transform: translateY(-2px); }
-        .status { padding: 15px; border-radius: 8px; margin-top: 10px; display: none; font-weight: bold; text-align: center; border: 1px solid rgba(255,255,255,0.2); }
-        .help-text { font-size: 12px; color: #aaa; margin-bottom: 15px; margin-top: -10px; }
+        body { font-family: sans-serif; background: #0b0314; color: #fff; padding: 20px; }
+        .card { background: #1a1026; padding: 25px; border-radius: 15px; border: 2px solid purple; max-width: 800px; margin: 0 auto 30px; }
+        input, textarea, select { width: 100%; padding: 12px; margin: 10px 0; background: #000; color: #fff; border: 1px solid #444; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: #7b1fa2; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
+        button:hover { background: #9c27b0; }
+        .green { background: #27ae60 !important; }
+        .orange { background: #e67e22 !important; }
+        h2 { color: #7b1fa2; border-bottom: 1px solid #333; padding-bottom: 10px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1><i class="fa-solid fa-shuttle-space"></i> Mikrokosmos Admin</h1>
-
     <div class="card">
-        <h3><i class="fa-solid fa-gear"></i> 1. Adım: GitHub Bağlantısı</h3>
-        <label>GitHub Token (PAT)</label>
-        <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxx">
-        <label>GitHub Kullanıcı Adın / Repo Adın</label>
-        <input type="text" id="gh-repo" placeholder="kullanici/repo-adi">
-        <button onclick="saveSettings()" style="background: #27ae60;"><i class="fa-solid fa-save"></i> Ayarları Kaydet</button>
+        <h2>🛰️ 1. GitHub Bağlantısı</h2>
+        <input type="password" id="token" placeholder="GitHub Token (PAT)">
+        <input type="text" id="repo" placeholder="KullanıcıAdı/RepoAdı (Örn: msk/site)">
+        <button onclick="saveConf()" class="green">Bağlantıyı Kaydet</button>
     </div>
 
     <div class="card">
-        <h3><i class="fa-solid fa-book"></i> 2. Adım: Yeni Seri Oluştur</h3>
-        <label>Seri ID (Küçük harf, boşluksuz, örn: solo-leveling)</label>
-        <input type="text" id="s-id" placeholder="solo-leveling">
-        <label>Seri Adı</label>
-        <input type="text" id="s-title" placeholder="Solo Leveling">
-        <label>Kapak Resmi URL</label>
-        <input type="text" id="s-thumb" placeholder="https://resimlinki.com/kapak.jpg">
-        <label>Tür</label>
-        <select id="s-type">
-            <option value="manhwa">Manhwa (Webtoon)</option>
-            <option value="novel">Novel (Metin)</option>
-        </select>
-        <label>Açıklama / Özet</label>
-        <textarea id="s-desc" rows="3"></textarea>
-        <button onclick="addNewSeries()"><i class="fa-solid fa-plus"></i> Seriyi Siteye Ekle</button>
+        <h2>📚 2. Yeni Seri Ekle</h2>
+        <input type="text" id="sid" placeholder="seri-id (küçük harf, boşluksuz, örn: solo-leveling)">
+        <input type="text" id="stitle" placeholder="Seri Adı">
+        <input type="text" id="sthumb" placeholder="Kapak Resmi URL">
+        <select id="stype"><option value="manhwa">Manhwa / Webtoon</option><option value="novel">Novel</option></select>
+        <textarea id="sdesc" placeholder="Seri Özeti/Konusu"></textarea>
+        <button onclick="addSeries()">Seriyi Galaksiye Ekle</button>
     </div>
 
     <div class="card">
-        <h3><i class="fa-solid fa-upload"></i> 3. Adım: Bölüm Yayınla</h3>
-        <label>Hangi Seri? (Daha önce verdiğin ID'yi yaz)</label>
-        <input type="text" id="target-seri-id" placeholder="solo-leveling">
-        <label>Bölüm Başlığı</label>
-        <input type="text" id="c-title" placeholder="Bölüm 01">
-        <label>İçerik (Imgbox Kodları veya Novel Metni)</label>
-        <textarea id="c-content" rows="10"></textarea>
-        <button onclick="publishChapter()" style="background: #e67e22;"><i class="fa-solid fa-paper-plane"></i> Bölümü Yayınla</button>
+        <h2>🔥 3. Bölüm Yayınla</h2>
+        <input type="text" id="target_sid" placeholder="Hangi Seri? (seri-id yaz)">
+        <input type="text" id="ctitle" placeholder="Bölüm Başlığı (Örn: Bölüm 05)">
+        <textarea id="ccontent" rows="10" placeholder="Webtoon ise Imgbox kodları, Novel ise metni buraya yapıştırın..."></textarea>
+        <button onclick="addChapter()" class="orange">Bölümü Yayınla</button>
     </div>
 
-    <div id="status-box" class="status"></div>
-</div>
-
-<script>
-    // Sayfa yüklenince ayarları çek
-    window.onload = function() {
-        document.getElementById('gh-token').value = localStorage.getItem('gh_token') || "";
-        document.getElementById('gh-repo').value = localStorage.getItem('gh_repo') || "";
-    }
-
-    function saveSettings() {
-        localStorage.setItem('gh_token', document.getElementById('gh-token').value);
-        localStorage.setItem('gh_repo', document.getElementById('gh-repo').value);
-        showStatus("Bağlantı ayarları kaydedildi!", "#27ae60");
-    }
-
-    function showStatus(msg, color) {
-        const box = document.getElementById('status-box');
-        box.innerText = msg;
-        box.style.backgroundColor = color;
-        box.style.display = 'block';
-        window.scrollTo(0, document.body.scrollHeight);
-    }
-
-    // GitHub'a dosya göndermek için yardımcı fonksiyon (Türkçe karakter destekli)
-    async function githubUpload(path, content, message, token, repo) {
-        const url = `https://api.github.com/repos/${repo}/contents/${path}`;
-        let sha = "";
-
-        // Önce dosya var mı kontrol et, varsa SHA al
-        const check = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
-        if(check.ok) {
-            const fileData = await check.json();
-            sha = fileData.sha;
-        }
-
-        // Metni Base64'e çevir (Türkçe karakterleri bozmaz)
-        const base64Content = btoa(unescape(encodeURIComponent(content)));
-
-        const body = {
-            message: message,
-            content: base64Content,
-            sha: sha
+    <script>
+        // Ayarları hatırla
+        window.onload = () => {
+            document.getElementById('token').value = localStorage.getItem('gh_token') || "";
+            document.getElementById('repo').value = localStorage.getItem('gh_repo') || "";
         };
 
-        const res = await fetch(url, {
-            method: 'PUT',
-            headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        });
+        function saveConf() {
+            localStorage.setItem('gh_token', document.getElementById('token').value);
+            localStorage.setItem('gh_repo', document.getElementById('repo').value);
+            alert("GitHub bağlantısı tarayıcıya kaydedildi.");
+        }
 
-        return res;
-    }
-
-    async function addNewSeries() {
-        const token = document.getElementById('gh-token').value;
-        const repo = document.getElementById('gh-repo').value;
-        if(!token || !repo) return showStatus("Lütfen önce GitHub ayarlarını yapın!", "#c0392b");
-
-        showStatus("Seri veritabanı güncelleniyor...", "#f39c12");
-
-        try {
-            // 1. Mevcut series.json dosyasını çek
-            const res = await fetch(`https://api.github.com/repos/${repo}/contents/data/series.json`, {
-                headers: { 'Authorization': `token ${token}` }
-            });
+        async function ghApi(path, content, msg) {
+            const t = localStorage.getItem('gh_token'), r = localStorage.getItem('gh_repo');
+            const url = `https://api.github.com/repos/${r}/contents/${path}`;
             
-            let currentData = [];
-            if(res.ok) {
-                const file = await res.json();
-                currentData = JSON.parse(decodeURIComponent(escape(atob(file.content))));
-            }
+            let sha = "";
+            const check = await fetch(url, { headers: { 'Authorization': `token ${t}` } });
+            if(check.ok) { const f = await check.json(); sha = f.sha; }
 
-            // 2. Yeni seriyi ekle
-            const newEntry = {
-                id: document.getElementById('s-id').value.trim(),
-                title: document.getElementById('s-title').value,
-                type: document.getElementById('s-type').value,
-                thumb: document.getElementById('s-thumb').value,
-                desc: document.getElementById('s-desc').value,
+            const body = { 
+                message: msg, 
+                content: btoa(unescape(encodeURIComponent(content))), 
+                sha: sha 
+            };
+
+            const res = await fetch(url, { 
+                method: 'PUT', 
+                headers: { 'Authorization': `token ${t}`, 'Content-Type': 'application/json' }, 
+                body: JSON.stringify(body) 
+            });
+            return res.ok;
+        }
+
+        async function addSeries() {
+            const t = localStorage.getItem('gh_token'), r = localStorage.getItem('gh_repo');
+            const res = await fetch(`https://api.github.com/repos/${r}/contents/data/series.json`, { headers: { 'Authorization': `token ${t}` } });
+            let data = [];
+            if(res.ok) { 
+                const f = await res.json(); 
+                data = JSON.parse(decodeURIComponent(escape(atob(f.content)))); 
+            }
+            
+            data.push({
+                id: document.getElementById('sid').value.trim(),
+                title: document.getElementById('stitle').value,
+                thumb: document.getElementById('sthumb').value,
+                type: document.getElementById('stype').value,
+                desc: document.getElementById('sdesc').value,
                 status: "Devam Ediyor"
-            };
-
-            currentData.push(newEntry);
-
-            // 3. GitHub'a geri yükle
-            const updateRes = await githubUpload('data/series.json', JSON.stringify(currentData, null, 2), "Yeni seri eklendi", token, repo);
-
-            if(updateRes.ok) showStatus("Yeni seri başarıyla eklendi! 🚀", "#27ae60");
-            else showStatus("Hata: " + updateRes.statusText, "#c0392b");
-
-        } catch(e) {
-            showStatus("Bağlantı Hatası: " + e.message, "#c0392b");
-        }
-    }
-
-    async function publishChapter() {
-        const token = document.getElementById('gh-token').value;
-        const repo = document.getElementById('gh-repo').value;
-        const targetId = document.getElementById('target-seri-id').value.trim();
-        if(!targetId) return showStatus("Lütfen Seri ID yazın!", "#c0392b");
-
-        showStatus("Bölüm dosyası işleniyor...", "#f39c12");
-
-        try {
-            // 1. Serinin bölüm dosyasını çekmeyi dene
-            const path = `data/chapters/${targetId}.json`;
-            const res = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
-                headers: { 'Authorization': `token ${token}` }
             });
-            
-            let chapterData = [];
-            if(res.ok) {
-                const file = await res.json();
-                chapterData = JSON.parse(decodeURIComponent(escape(atob(file.content))));
+
+            if(await ghApi('data/series.json', JSON.stringify(data, null, 2), "Yeni seri eklendi")) {
+                alert("Seri başarıyla oluşturuldu!");
             }
-
-            // 2. Yeni bölümü ekle
-            const newChapter = {
-                no: chapterData.length + 1,
-                title: document.getElementById('c-title').value,
-                content: document.getElementById('c-content').value,
-                date: new Date().toLocaleDateString('tr-TR')
-            };
-
-            chapterData.push(newChapter);
-
-            // 3. GitHub'a gönder
-            const updateRes = await githubUpload(path, JSON.stringify(chapterData, null, 2), "Yeni bölüm eklendi", token, repo);
-
-            if(updateRes.ok) {
-                showStatus("Bölüm başarıyla yayınlandı! 🚀", "#27ae60");
-                document.getElementById('c-title').value = "";
-                document.getElementById('c-content').value = "";
-            } else {
-                showStatus("Yükleme Hatası!", "#c0392b");
-            }
-
-        } catch(e) {
-            showStatus("Hata: " + e.message, "#c0392b");
         }
-    }
-</script>
+
+        async function addChapter() {
+            const sid = document.getElementById('target_sid').value.trim();
+            const t = localStorage.getItem('gh_token'), r = localStorage.getItem('gh_repo');
+            const path = `data/chapters/${sid}.json`;
+            
+            const res = await fetch(`https://api.github.com/repos/${r}/contents/${path}`, { headers: { 'Authorization': `token ${t}` } });
+            let data = [];
+            if(res.ok) {
+                const f = await res.json();
+                data = JSON.parse(decodeURIComponent(escape(atob(f.content))));
+            }
+
+            data.push({
+                no: data.length + 1,
+                title: document.getElementById('ctitle').value,
+                content: document.getElementById('ccontent').value,
+                date: new Date().toLocaleDateString('tr-TR')
+            });
+
+            if(await ghApi(path, JSON.stringify(data, null, 2), `${sid} - yeni bölüm`)) {
+                alert("Bölüm başarıyla yüklendi!");
+                document.getElementById('ccontent').value = "";
+            }
+        }
+    </script>
 </body>
 </html>
