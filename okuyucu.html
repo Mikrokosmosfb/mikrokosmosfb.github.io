@@ -87,7 +87,7 @@
             border-radius: 12px;
             padding: 15px;
             margin-bottom: 20px;
-            display: none; /* JS Novel algılarsa gösterecek */
+            display: none;
         }
         .novel-settings-grid {
             display: grid;
@@ -217,7 +217,7 @@
             <a id="nextBtnTop" href="#" class="disabled">Sonraki <i class="fa-solid fa-chevron-right"></i></a>
         </div>
 
-        <!-- NOVEL AYARLAR PANELİ (Yalnızca Novel ise Görünür) -->
+        <!-- NOVEL AYARLAR PANELİ -->
         <div id="novelSettings" class="novel-settings-panel">
             <div style="font-weight: bold; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 5px; margin-bottom: 10px;">
                 <i class="fa-solid fa-sliders"></i> Novel Okuma Ayarları
@@ -272,7 +272,6 @@
 
         <!-- İÇERİK ALANI -->
         <div id="readerContentArea">
-            <!-- JS Tarafından Webtoon Resimleri Veya Novel Paragrafları Buraya Basılacak -->
             <div style="text-align: center; padding: 100px 0;">
                 <i class="fa-solid fa-spinner fa-spin" style="font-size: 35px; color: var(--primary-color);"></i>
                 <p>İçerik yükleniyor, lütfen bekleyin...</p>
@@ -286,7 +285,6 @@
         </div>
     </div>
 
-    <!-- Otomatik Kaydırmayı Durdurma Butonu -->
     <button id="stopScrollBtn" onclick="stopAutoScroll()"><i class="fa-solid fa-pause"></i> Kaydırmayı Durdur</button>
 
     <script>
@@ -311,9 +309,8 @@
             fetchChapterContent();
         });
 
-        // 1. Bölüm İçeriğini Çek
         function fetchChapterContent() {
-            const path = `data/chapters/${seriesId}/${chapterId}.json`;
+            const path = `data/chapters/${seriesId}/${chapterId}.json?t=` + new Date().getTime();
             fetch(path)
                 .then(res => {
                     if (!res.ok) throw new Error("Bölüm içeriği bulunamadı.");
@@ -323,7 +320,7 @@
                     currentChapterData = data;
                     checkAgeRating();
                     renderChapter();
-                    fetchSeriesChapters(); // Navigasyonu hesaplamak için serideki tüm bölümleri çek
+                    fetchSeriesChapters();
                 })
                 .catch(err => {
                     console.error("Bölüm yüklenirken hata:", err);
@@ -331,7 +328,6 @@
                 });
         }
 
-        // Yaş Sınırı Onay Sistemi
         function checkAgeRating() {
             if (currentChapterData.is18) {
                 if (sessionStorage.getItem("age_verified_" + seriesId) !== "true") {
@@ -349,7 +345,6 @@
             window.location.href = `series.html?id=${seriesId}`;
         }
 
-        // 2. Bölümü Arayüze Yazdır
         function renderChapter() {
             document.getElementById("chapterTitle").innerText = currentChapterData.title;
             document.title = `${currentChapterData.title} Türkçe Oku - Mikrokosmos`;
@@ -357,7 +352,6 @@
             const area = document.getElementById("readerContentArea");
 
             if (currentChapterData.type === "webtoon") {
-                // Webtoon Resimlerini Yazdır
                 let webtoonHtml = `<div class="webtoon-area">`;
                 currentChapterData.content.forEach((imgUrl, index) => {
                     webtoonHtml += `<img src="${imgUrl}" alt="Sayfa ${index + 1}" loading="lazy">`;
@@ -365,10 +359,8 @@
                 webtoonHtml += `</div>`;
                 area.innerHTML = webtoonHtml;
             } else {
-                // Novel Metnini Yazdır
                 document.getElementById("novelSettings").style.display = "block";
                 
-                // Paragraflara bölerek şık bir kutu içinde yazdıralım
                 const paragraphs = currentChapterData.content.split("\n").filter(p => p.trim() !== "");
                 let novelHtml = `<div id="novelTextBox" class="novel-content-box">`;
                 paragraphs.forEach(p => {
@@ -377,16 +369,24 @@
                 novelHtml += `</div>`;
                 area.innerHTML = novelHtml;
 
-                // Süre hesapla
                 calculateReadingTime(currentChapterData.content);
-                // Kaydedilmiş stilleri uygula
                 applySavedNovelStyles();
+            }
+
+            // Bu bölümü okundu geçmişine otomatik kaydediyoruz
+            try {
+                let readHistory = JSON.parse(localStorage.getItem("mikro_read_history_" + seriesId) || "[]");
+                if (!readHistory.includes(chapterId)) {
+                    readHistory.push(chapterId);
+                    localStorage.setItem("mikro_read_history_" + seriesId, JSON.stringify(readHistory));
+                }
+            } catch(e) { 
+                console.error("Okuma geçmişi yazılırken hata:", e); 
             }
         }
 
-        // 3. Bölüm Navigasyonunu Hesapla (Önceki - Sonraki Butonları)
         function fetchSeriesChapters() {
-            fetch("data/series.json")
+            fetch("data/series.json?t=" + new Date().getTime())
                 .then(res => res.json())
                 .then(data => {
                     const series = data.find(s => s.id === seriesId);
@@ -402,13 +402,11 @@
             const dropdown = document.getElementById("chapterSelect");
             dropdown.innerHTML = "";
 
-            // Dropdown'u doldur
             allChapters.forEach(ch => {
                 const selected = ch.id === chapterId ? "selected" : "";
                 dropdown.innerHTML += `<option value="${ch.id}" ${selected}>${ch.title}</option>`;
             });
 
-            // İndisleri bul
             const currentIndex = allChapters.findIndex(ch => ch.id === chapterId);
 
             const prevBtnTop = document.getElementById("prevBtnTop");
@@ -416,7 +414,6 @@
             const nextBtnTop = document.getElementById("nextBtnTop");
             const nextBtnBottom = document.getElementById("nextBtnBottom");
 
-            // Önceki Bölüm Var Mı?
             if (currentIndex > 0) {
                 const prevChapter = allChapters[currentIndex - 1];
                 const prevUrl = `okuyucu.html?series=${seriesId}&chapter=${prevChapter.id}`;
@@ -427,7 +424,6 @@
                 prevBtnBottom.classList.add("disabled");
             }
 
-            // Sonraki Bölüm Var Mı?
             if (currentIndex < allChapters.length - 1 && currentIndex !== -1) {
                 const nextChapter = allChapters[currentIndex + 1];
                 const nextUrl = `okuyucu.html?series=${seriesId}&chapter=${nextChapter.id}`;
@@ -445,10 +441,9 @@
             }
         }
 
-        // --- NOVEL ÖZEL AYARLARI ---
         function calculateReadingTime(text) {
             const words = text.trim().split(/\s+/).length;
-            const minutes = Math.max(1, Math.round(words / 220)); // Ortalama dakikada 220 kelime
+            const minutes = Math.max(1, Math.round(words / 220));
             document.getElementById("readingMinutes").innerText = minutes;
         }
 
@@ -470,7 +465,6 @@
             if (type === 'size') box.style.fontSize = value;
             if (type === 'lineHeight') box.style.lineHeight = value;
 
-            // Tercihleri yerel hafızaya kaydet
             localStorage.setItem(`novel_style_${type}`, value);
         }
 
@@ -486,7 +480,6 @@
             if (lineHeight) { changeNovelStyle('lineHeight', lineHeight); document.getElementById("novelLineHeightSelect").value = lineHeight; }
         }
 
-        // Otomatik Sayfa Kaydırma (Auto Scroll) Sürgüsü
         function toggleAutoScroll() {
             const stopBtn = document.getElementById("stopScrollBtn");
             if (scrollInterval) {
@@ -494,7 +487,7 @@
             } else {
                 scrollInterval = setInterval(() => {
                     window.scrollBy({ top: 1, behavior: "smooth" });
-                }, 45); // Kaydırma hızı (milisaniye cinsinden)
+                }, 45);
                 stopBtn.style.display = "block";
             }
         }
