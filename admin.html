@@ -1,685 +1,243 @@
+<!-- admin.html -->
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mikrokosmos Yönetim Paneli</title>
-    <!-- Tailwind CSS & FontAwesome -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Mikrokosmos - Yönetim Paneli</title>
+    <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        :root {
-            --primary: #7b1fa2;
-            --dark-bg: #16151d;
-            --card-bg: #22202c;
-            --text-color: #eee;
+        .admin-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
         }
-        body {
-            background-color: var(--dark-bg);
-            color: var(--text-color);
-            font-family: 'Fira Sans', sans-serif;
+        .admin-nav button {
+            background: #eee;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 6px;
+            color: #333;
+        }
+        .admin-nav button.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .setup-screen {
+            max-width: 500px;
+            margin: 100px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .dark-mode .setup-screen {
+            background: #222;
+        }
+        .series-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .series-list-item button {
+            background: #d9534f;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .status-msg {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 6px;
+            font-weight: bold;
+            display: none;
+        }
+        .status-msg.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        .status-msg.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
         }
     </style>
 </head>
-<body class="p-4 md:p-8">
-
-    <div class="max-w-6xl mx-auto">
-        <!-- HEADER -->
-        <header class="flex justify-between items-center mb-8 pb-4 border-b border-purple-900/50">
-            <div class="flex items-center gap-3">
-                <span class="text-3xl text-purple-500">✦</span>
-                <h1 class="text-2xl font-bold tracking-wide">Mikrokosmos Panel</h1>
-            </div>
-            <button id="logoutBtn" onclick="logout()" class="hidden bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm transition">
-                <i class="fa-solid fa-sign-out mr-2"></i>Çıkışı Yap
-            </button>
-        </header>
-
-        <!-- SETUP / LOGIN SCREEN -->
-        <div id="setupScreen" class="max-w-md mx-auto bg-[#22202c] p-6 rounded-2xl border border-purple-900/30 shadow-2xl">
-            <h2 class="text-xl font-bold mb-6 text-center text-purple-400">GitHub API Bağlantısı</h2>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold mb-1 text-gray-400">GitHub Kullanıcı Adı (Owner)</label>
-                    <input type="text" id="gitOwner" class="w-full bg-[#16151d] border border-purple-900/30 rounded-lg p-2.5 text-sm focus:outline-none focus:border-purple-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold mb-1 text-gray-400">Repo Adı (Repository)</label>
-                    <input type="text" id="gitRepo" class="w-full bg-[#16151d] border border-purple-900/30 rounded-lg p-2.5 text-sm focus:outline-none focus:border-purple-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold mb-1 text-gray-400">Branch Adı (Örn: main veya master)</label>
-                    <input type="text" id="gitBranch" value="main" class="w-full bg-[#16151d] border border-purple-900/30 rounded-lg p-2.5 text-sm focus:outline-none focus:border-purple-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold mb-1 text-gray-400">Personal Access Token (PAT)</label>
-                    <input type="password" id="gitToken" placeholder="ghp_..." class="w-full bg-[#16151d] border border-purple-900/30 rounded-lg p-2.5 text-sm focus:outline-none focus:border-purple-500">
-                </div>
-                <button onclick="saveSetup()" class="w-full bg-purple-700 hover:bg-purple-800 text-white p-3 rounded-lg font-bold transition mt-2">
-                    Bağlan ve Giriş Yap
-                </button>
-            </div>
-        </div>
-
-        <!-- MAIN DASHBOARD -->
-        <div id="mainDashboard" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            <!-- LEFT COLUMN: SERIES LIST & ACTIONS -->
-            <div class="lg:col-span-1 space-y-6">
-                <div class="bg-[#22202c] p-6 rounded-2xl border border-purple-900/30 shadow-xl">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-lg font-bold text-purple-400">Serileriniz</h2>
-                        <button onclick="showNewSeriesForm()" class="bg-purple-700 hover:bg-purple-800 text-white text-xs px-3 py-1.5 rounded-lg transition">
-                            <i class="fa-solid fa-plus mr-1"></i>Yeni Seri
-                        </button>
-                    </div>
-                    <div id="seriesList" class="space-y-2 max-h-[500px] overflow-y-auto pr-2">
-                        <!-- Seriler buraya yüklenecek -->
-                        <div class="text-sm text-gray-400 text-center py-4">Yükleniyor...</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- RIGHT COLUMN: FORM AREA -->
-            <div class="lg:col-span-2 space-y-6">
-                <!-- SERIES FORM -->
-                <div id="seriesFormContainer" class="hidden bg-[#22202c] p-6 rounded-2xl border border-purple-900/30 shadow-xl">
-                    <h2 id="formTitle" class="text-lg font-bold mb-6 text-purple-400">Seri Ekle</h2>
-                    <form id="seriesForm" onsubmit="handleSeriesSubmit(event)" class="space-y-4">
-                        <input type="hidden" id="seriesIndex">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-semibold mb-1 text-gray-400">Seri Adı</label>
-                                <input type="text" id="seriesTitle" required class="w-full bg-[#16151d] border border-purple-900/30 rounded-lg p-2.5 text-sm focus:outline-none focus:border-purple-500">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold mb-1 text-gray-400">Alternatif Adı</label>
-                                <input type="text" id="seriesAltTitle" class="w-full bg-[#16151d] border border-purple-900/30 rounded-lg p-2.5 text-sm focus:outline-none focus:border-purple-500">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-semibold mb-1 text-gray-400">Seri Slug (URL uyumlu benzersiz ad - Boşluksuz/Küçük harf)</label>
-                                <input type="text" id="seriesId" required class="w-full bg-[#16151d] border border-purple-900/30 rounded-lg p-2.5 text-sm focus:outline-none focus:border-purple-500">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold mb-1 text-gray-400">Kapak Resmi URL</label>
-                                <input type="url" id="seriesCover" required class="w-full bg-[#16151d] border border-purple-900/30 rounded-lg p-2.5 text-sm focus:outline-none focus:border-purple-500">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div>
-                                <label class="block text-xs font-semibold mb-1 text-gray-400">Durum</label>
-                                <select id="seriesStatus" class="w-full bg-[#16151d] border border-purple-900/30 rounded-lg p-2.5 text-sm focus:outline-none focus:border-purple-500">
-                                    <option value="Devam Ediyor">Devam Ediyor</option>
-                                    <option value="Tamamlandı">Tamamlandı</option>
-                                    <option value="Bırakıldı">Bırakıldı</option>
-                                    <option value="Yakında">Yakında</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold mb-1 text-gray-400">Tip</label>
-                                <select id="seriesType" class="w-full bg-[#16151d] border border-purple-900/30 rounded-lg p-2.5 text-sm focus:outline-none focus:border-purple-500">
-                                    <option value="Manhwa">Manhwa</option>
-                                    <option value="Manhua">Manhua</option>
-                                    <option value="Manga">Manga</option>
-                                    <option value="Novel">Novel</option>
-                                    <option value="Webtoon">Webtoon</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold mb-1 text-gray-400">Puan (1-10)</label>
-                                <input type="number" id="seriesRating" min="1" max="10" step="0.1" class="w-full bg-[#16151d] border border-purple-900/30 rounded-lg p-2.5 text-sm focus:outline-none focus:border-purple-500">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold mb-1 text-gray-400">Yaş Sınırı</label>
-                                <select id="seriesAgeLimit" class="w-full bg-[#16151d] border border-purple-900/30 rounded-lg p-2.5 text-sm focus:outline-none focus:border-purple-500">
-                                    <option value="Genel">Genel</option>
-                                    <option value="18+">18+</option>
-                                    <option value="Yetişkin">Yetişkin</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold mb-1 text-gray-400">Türler / Etiketler (Virgülle ayırın)</label>
-                            <input type="text" id="seriesTags" placeholder="BL, Yaoi, Romantik, Drama" class="w-full bg-[#16151d] border border-purple-900/30 rounded-lg p-2.5 text-sm focus:outline-none focus:border-purple-500">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold mb-1 text-gray-400">Özet (Açıklama)</label>
-                            <textarea id="seriesSummary" rows="4" class="w-full bg-[#16151d] border border-purple-900/30 rounded-lg p-2.5 text-sm focus:outline-none focus:border-purple-500"></textarea>
-                        </div>
-
-                        <div class="flex justify-end gap-3 pt-4 border-t border-purple-900/30">
-                            <button type="button" onclick="cancelSeriesForm()" class="bg-gray-700 hover:bg-gray-600 text-white text-sm px-4 py-2 rounded-lg transition">İptal</button>
-                            <button type="submit" class="bg-purple-700 hover:bg-purple-800 text-white text-sm px-4 py-2 rounded-lg font-bold transition">Seriyi Kaydet</button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- CHAPTERS LIST & UPLOAD AREA -->
-                <div id="chaptersContainer" class="hidden bg-[#22202c] p-6 rounded-2xl border border-purple-900/30 shadow-xl">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 id="activeSeriesTitle" class="text-lg font-bold text-purple-400">Bölümler</h2>
-                        <button onclick="showNewChapterForm()" class="bg-purple-700 hover:bg-purple-800 text-white text-xs px-3 py-1.5 rounded-lg transition">
-                            <i class="fa-solid fa-plus mr-1"></i>Yeni Bölüm Ekle
-                        </button>
-                    </div>
-
-                    <!-- Bölüm Listesi -->
-                    <div id="chaptersList" class="space-y-2 mb-6">
-                        <!-- Bölümler buraya dinamik yüklenecek -->
-                    </div>
-
-                    <!-- CHAPTER FORM -->
-                    <div id="chapterFormContainer" class="hidden border-t border-purple-900/30 pt-6">
-                        <h3 id="chapterFormTitle" class="text-md font-bold mb-4 text-purple-300">Yeni Bölüm Ekle</h3>
-                        <form id="chapterForm" onsubmit="handleChapterSubmit(event)" class="space-y-4">
-                            <input type="hidden" id="chapterIndex">
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                    <label class="block text-xs font-semibold mb-1 text-gray-400">Bölüm No/Adı (Örn: Bölüm 1)</label>
-                                    <input type="text" id="chapterTitle" required class="w-full bg-[#16151d] border border-purple-900/30 rounded-lg p-2.5 text-sm focus:outline-none focus:border-purple-500">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold mb-1 text-gray-400">Bölüm ID (Örn: bolum-1)</label>
-                                    <input type="text" id="chapterId" required class="w-full bg-[#16151d] border border-purple-900/30 rounded-lg p-2.5 text-sm focus:outline-none focus:border-purple-500">
-                                </div>
-                                <div class="flex items-center pt-6 pl-2">
-                                    <input type="checkbox" id="chapterIs18" class="w-4 h-4 text-purple-600 border-purple-900/30 rounded focus:ring-purple-500">
-                                    <label for="chapterIs18" class="ml-2 text-sm text-gray-300">18+ Uyarı Kutusu Göster</label>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-semibold mb-1 text-gray-400">İçerik Türü</label>
-                                <select id="contentType" onchange="toggleContentArea()" class="w-full bg-[#16151d] border border-purple-900/30 rounded-lg p-2.5 text-sm focus:outline-none focus:border-purple-500">
-                                    <option value="Webtoon">Webtoon (Görseller / Imgbox Kodları)</option>
-                                    <option value="Novel">Novel (Metin)</option>
-                                </select>
-                            </div>
-
-                            <!-- WEBTOON CONTENT AREA -->
-                            <div id="webtoonArea">
-                                <label class="block text-xs font-semibold mb-1 text-gray-400">Görsel Kodları veya Doğrudan Resim Linkleri (Her satıra bir link veya imgbox HTML/Embed kodu)</label>
-                                <textarea id="webtoonImages" rows="8" placeholder="https://imgbox.com/...\n<a href='...'><img src='...'/></a>" class="w-full bg-[#16151d] border border-purple-900/30 rounded-lg p-2.5 text-sm focus:outline-none focus:border-purple-500 font-mono text-xs"></textarea>
-                            </div>
-
-                            <!-- NOVEL CONTENT AREA -->
-                            <div id="novelArea" class="hidden">
-                                <label class="block text-xs font-semibold mb-1 text-gray-400">Novel Metni</label>
-                                <textarea id="novelText" rows="12" placeholder="Hikaye metnini doğrudan buraya yapıştırın..." class="w-full bg-[#16151d] border border-purple-900/30 rounded-lg p-2.5 text-sm focus:outline-none focus:border-purple-500"></textarea>
-                            </div>
-
-                            <div class="flex justify-end gap-3 pt-4 border-t border-purple-900/30">
-                                <button type="button" onclick="cancelChapterForm()" class="bg-gray-700 hover:bg-gray-600 text-white text-sm px-4 py-2 rounded-lg transition">İptal</button>
-                                <button type="submit" class="bg-purple-700 hover:bg-purple-800 text-white text-sm px-4 py-2 rounded-lg font-bold transition">Bölümü Kaydet</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- PROGRESS LOADER MODAL -->
-    <div id="loaderModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 hidden">
-        <div class="bg-[#22202c] p-6 rounded-2xl border border-purple-900/30 text-center space-y-4 max-w-sm w-full mx-4">
-            <div class="animate-spin text-purple-500 text-3xl"><i class="fa-solid fa-spinner"></i></div>
-            <p id="loaderMessage" class="text-sm font-semibold text-gray-300">Lütfen bekleyin, işlemler GitHub'a kaydediliyor...</p>
-        </div>
-    </div>
-
+<body id="modeSwitch">
     <script>
-        // GLOBAL VARIABLES
-        let githubConfig = {};
-        let database = [];
-        let activeSeriesIndex = null;
-
-        // AUTH & SETUP MANAGEMENT
-        document.addEventListener("DOMContentLoaded", () => {
-            const savedConfig = localStorage.getItem("mk_github_config");
-            if (savedConfig) {
-                githubConfig = JSON.parse(savedConfig);
-                showDashboard();
-            }
-        });
-
-        function saveSetup() {
-            const config = {
-                owner: document.getElementById("gitOwner").value.trim(),
-                repo: document.getElementById("gitRepo").value.trim(),
-                branch: document.getElementById("gitBranch").value.trim(),
-                token: document.getElementById("gitToken").value.trim()
-            };
-
-            if (!config.owner || !config.repo || !config.token) {
-                alert("Lütfen tüm alanları doldurun.");
-                return;
-            }
-
-            githubConfig = config;
-            localStorage.setItem("mk_github_config", JSON.stringify(config));
-            showDashboard();
-        }
-
-        function logout() {
-            localStorage.removeItem("mk_github_config");
-            location.reload();
-        }
-
-        async function showDashboard() {
-            document.getElementById("setupScreen").classList.add("hidden");
-            document.getElementById("logoutBtn").classList.remove("hidden");
-            document.getElementById("mainDashboard").classList.remove("hidden");
-            await loadDatabase();
-        }
-
-        // LOADER CONTROL
-        function showLoader(msg) {
-            document.getElementById("loaderMessage").innerText = msg;
-            document.getElementById("loaderModal").classList.remove("hidden");
-        }
-        function hideLoader() {
-            document.getElementById("loaderModal").classList.add("hidden");
-        }
-
-        // GITHUB API METHODS
-        async function fetchFromGithub(path) {
-            const url = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/${path}?ref=${githubConfig.branch}`;
-            const response = await fetch(url, {
-                headers: {
-                    "Authorization": `token ${githubConfig.token}`,
-                    "Accept": "application/vnd.github.v3+json"
-                }
-            });
-            if (response.status === 404) return null;
-            if (!response.ok) throw new Error("Dosya alınamadı.");
-            return await response.json();
-        }
-
-        async function commitToGithub(path, content, message, sha = null) {
-            const url = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/${path}`;
-            const body = {
-                message: message,
-                content: btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2)))),
-                branch: githubConfig.branch
-            };
-            if (sha) body.sha = sha;
-
-            const response = await fetch(url, {
-                method: "PUT",
-                headers: {
-                    "Authorization": `token ${githubConfig.token}`,
-                    "Content-Type": "application/json",
-                    "Accept": "application/vnd.github.v3+json"
-                },
-                body: JSON.stringify(body)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "GitHub API Hatası");
-            }
-        }
-
-        // DATABASE OPERATIONS
-        async function loadDatabase() {
-            try {
-                const fileData = await fetchFromGithub("data/series.json");
-                if (fileData) {
-                    const decoded = decodeURIComponent(escape(atob(fileData.content)));
-                    database = JSON.parse(decoded);
-                } else {
-                    database = [];
-                }
-                renderSeriesList();
-            } catch (err) {
-                console.error(err);
-                alert("GitHub Veritabanı dosyasına erişilemedi. Kurulum bilgilerini kontrol edin.");
-            }
-        }
-
-        function renderSeriesList() {
-            const listEl = document.getElementById("seriesList");
-            listEl.innerHTML = "";
-            if (database.length === 0) {
-                listEl.innerHTML = `<div class="text-xs text-gray-500 text-center py-4">Seri bulunmamaktadır.</div>`;
-                return;
-            }
-
-            database.forEach((series, index) => {
-                const item = document.createElement("div");
-                item.className = "flex justify-between items-center bg-[#16151d] p-3 rounded-xl border border-purple-950/20 hover:border-purple-700/50 transition cursor-pointer";
-                item.onclick = (e) => {
-                    if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'I') {
-                        selectSeries(index);
-                    }
-                };
-                item.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <img src="${series.cover}" class="w-10 h-14 object-cover rounded-md" alt="">
-                        <div>
-                            <h3 class="text-sm font-bold text-gray-200 line-clamp-1">${series.title}</h3>
-                            <span class="text-[10px] bg-purple-900/40 text-purple-300 px-2 py-0.5 rounded-full">${series.type}</span>
-                        </div>
-                    </div>
-                    <div class="flex gap-1">
-                        <button onclick="editSeries(${index})" class="text-blue-400 hover:bg-blue-900/20 p-2 rounded-lg text-xs" title="Düzenle">
-                            <i class="fa-solid fa-edit"></i>
-                        </button>
-                        <button onclick="deleteSeries(${index})" class="text-red-400 hover:bg-red-900/20 p-2 rounded-lg text-xs" title="Sil">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
-                `;
-                listEl.appendChild(item);
-            });
-        }
-
-        // FORM ACTIONS & UI CONTROLS
-        function showNewSeriesForm() {
-            document.getElementById("seriesForm").reset();
-            document.getElementById("seriesIndex").value = "";
-            document.getElementById("formTitle").innerText = "Yeni Seri Ekle";
-            document.getElementById("seriesFormContainer").classList.remove("hidden");
-            document.getElementById("chaptersContainer").classList.add("hidden");
-        }
-
-        function cancelSeriesForm() {
-            document.getElementById("seriesFormContainer").classList.add("hidden");
-        }
-
-        function editSeries(index) {
-            const series = database[index];
-            document.getElementById("seriesIndex").value = index;
-            document.getElementById("seriesTitle").value = series.title;
-            document.getElementById("seriesAltTitle").value = series.altTitle || "";
-            document.getElementById("seriesId").value = series.id;
-            document.getElementById("seriesCover").value = series.cover;
-            document.getElementById("seriesStatus").value = series.status;
-            document.getElementById("seriesType").value = series.type;
-            document.getElementById("seriesRating").value = series.rating || "";
-            document.getElementById("seriesAgeLimit").value = series.ageLimit || "Genel";
-            document.getElementById("seriesTags").value = series.tags ? series.tags.join(", ") : "";
-            document.getElementById("seriesSummary").value = series.summary || "";
-
-            document.getElementById("formTitle").innerText = "Seriyi Düzenle";
-            document.getElementById("seriesFormContainer").classList.remove("hidden");
-            document.getElementById("chaptersContainer").classList.add("hidden");
-        }
-
-        async function deleteSeries(index) {
-            if (!confirm("Bu seriyi ve bu seriye ait tüm bölüm referanslarını silmek istediğinizden emin misiniz?")) return;
-            showLoader("Seri siliniyor...");
-            try {
-                database.splice(index, 1);
-                const fileData = await fetchFromGithub("data/series.json");
-                await commitToGithub("data/series.json", database, "Seri Silindi", fileData.sha);
-                await loadDatabase();
-                document.getElementById("chaptersContainer").classList.add("hidden");
-                alert("Seri başarıyla silindi.");
-            } catch (err) {
-                alert("Hata: " + err.message);
-            } finally {
-                hideLoader();
-            }
-        }
-
-        async function handleSeriesSubmit(e) {
-            e.preventDefault();
-            showLoader("Seri kaydediliyor...");
-
-            const indexVal = document.getElementById("seriesIndex").value;
-            const seriesId = document.getElementById("seriesId").value.trim().toLowerCase().replace(/\s+/g, '-');
-            const tags = document.getElementById("seriesTags").value.split(",").map(t => t.trim()).filter(t => t);
-
-            const seriesData = {
-                id: seriesId,
-                title: document.getElementById("seriesTitle").value.trim(),
-                altTitle: document.getElementById("seriesAltTitle").value.trim(),
-                cover: document.getElementById("seriesCover").value.trim(),
-                status: document.getElementById("seriesStatus").value,
-                type: document.getElementById("seriesType").value,
-                rating: document.getElementById("seriesRating").value,
-                ageLimit: document.getElementById("seriesAgeLimit").value,
-                tags: tags,
-                summary: document.getElementById("seriesSummary").value.trim(),
-                chapters: (indexVal !== "") ? database[indexVal].chapters || [] : []
-            };
-
-            try {
-                const fileData = await fetchFromGithub("data/series.json");
-                if (indexVal !== "") {
-                    database[indexVal] = seriesData;
-                } else {
-                    // Check duplicate ID
-                    if (database.some(s => s.id === seriesId)) {
-                        alert("Bu benzersiz ada sahip başka bir seri mevcut.");
-                        return;
-                    }
-                    database.push(seriesData);
-                }
-
-                await commitToGithub("data/series.json", database, "Seri Veritabanı Güncellendi", fileData ? fileData.sha : null);
-                await loadDatabase();
-                cancelSeriesForm();
-                alert("Seri başarıyla kaydedildi.");
-            } catch (err) {
-                alert("Hata: " + err.message);
-            } finally {
-                hideLoader();
-            }
-        }
-
-        // CHAPTERS MANAGEMENT
-        function selectSeries(index) {
-            activeSeriesIndex = index;
-            const series = database[index];
-            document.getElementById("activeSeriesTitle").innerText = `"${series.title}" Bölümleri`;
-            document.getElementById("seriesFormContainer").classList.add("hidden");
-            document.getElementById("chaptersContainer").classList.remove("hidden");
-            document.getElementById("chapterFormContainer").classList.add("hidden");
-            renderChaptersList();
-        }
-
-        function renderChaptersList() {
-            const listEl = document.getElementById("chaptersList");
-            listEl.innerHTML = "";
-            const series = database[activeSeriesIndex];
-            const chapters = series.chapters || [];
-
-            if (chapters.length === 0) {
-                listEl.innerHTML = `<div class="text-xs text-gray-500 text-center py-4">Bu seride henüz bölüm bulunmuyor.</div>`;
-                return;
-            }
-
-            chapters.forEach((ch, index) => {
-                const item = document.createElement("div");
-                item.className = "flex justify-between items-center bg-[#16151d] p-3 rounded-lg border border-purple-950/20";
-                item.innerHTML = `
-                    <div>
-                        <span class="text-sm font-bold text-gray-200">${ch.title}</span>
-                        <span class="text-[10px] ml-2 text-gray-400">${ch.date}</span>
-                    </div>
-                    <div class="flex gap-1">
-                        <button onclick="editChapter(${index})" class="text-blue-400 hover:bg-blue-900/20 p-2 rounded-lg text-xs" title="Düzenle">
-                            <i class="fa-solid fa-edit"></i>
-                        </button>
-                        <button onclick="deleteChapter(${index})" class="text-red-400 hover:bg-red-900/20 p-2 rounded-lg text-xs" title="Sil">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
-                `;
-                listEl.appendChild(item);
-            });
-        }
-
-        function showNewChapterForm() {
-            document.getElementById("chapterForm").reset();
-            document.getElementById("chapterIndex").value = "";
-            document.getElementById("chapterFormTitle").innerText = "Yeni Bölüm Ekle";
-            document.getElementById("chapterFormContainer").classList.remove("hidden");
-            toggleContentArea();
-        }
-
-        function cancelChapterForm() {
-            document.getElementById("chapterFormContainer").classList.add("hidden");
-        }
-
-        function toggleContentArea() {
-            const type = document.getElementById("contentType").value;
-            if (type === "Webtoon") {
-                document.getElementById("webtoonArea").classList.remove("hidden");
-                document.getElementById("novelArea").classList.add("hidden");
-            } else {
-                document.getElementById("webtoonArea").classList.add("hidden");
-                document.getElementById("novelArea").classList.remove("hidden");
-            }
-        }
-
-        async function editChapter(index) {
-            const series = database[activeSeriesIndex];
-            const chRef = series.chapters[index];
-            showLoader("Bölüm içeriği GitHub'dan yükleniyor...");
-
-            try {
-                const path = `data/chapters/${series.id}/${chRef.id}.json`;
-                const fileData = await fetchFromGithub(path);
-                if (fileData) {
-                    const decoded = decodeURIComponent(escape(atob(fileData.content)));
-                    const chapterData = JSON.parse(decoded);
-
-                    document.getElementById("chapterIndex").value = index;
-                    document.getElementById("chapterTitle").value = chapterData.title;
-                    document.getElementById("chapterId").value = chapterData.chapterId;
-                    document.getElementById("chapterIs18").checked = chapterData.is18 || false;
-                    document.getElementById("contentType").value = chapterData.type;
-
-                    if (chapterData.type === "Webtoon") {
-                        document.getElementById("webtoonImages").value = chapterData.content;
-                    } else {
-                        document.getElementById("novelText").value = chapterData.content;
-                    }
-
-                    document.getElementById("chapterFormTitle").innerText = "Bölümü Düzenle";
-                    document.getElementById("chapterFormContainer").classList.remove("hidden");
-                    toggleContentArea();
-                } else {
-                    alert("Bölüm dosya içeriği GitHub'da bulunamadı.");
-                }
-            } catch (err) {
-                alert("Hata: " + err.message);
-            } finally {
-                hideLoader();
-            }
-        }
-
-        async function handleChapterSubmit(e) {
-            e.preventDefault();
-            showLoader("Bölüm verileri GitHub'a yazılıyor...");
-
-            const indexVal = document.getElementById("chapterIndex").value;
-            const series = database[activeSeriesIndex];
-            const chId = document.getElementById("chapterId").value.trim().toLowerCase().replace(/\s+/g, '-');
-            const type = document.getElementById("contentType").value;
-            const content = (type === "Webtoon") ? document.getElementById("webtoonImages").value : document.getElementById("novelText").value;
-
-            const chapterJson = {
-                seriesId: series.id,
-                chapterId: chId,
-                title: document.getElementById("chapterTitle").value.trim(),
-                type: type,
-                is18: document.getElementById("chapterIs18").checked,
-                content: content
-            };
-
-            try {
-                // 1. Write the chapter content JSON to data/chapters/<series_id>/<chapter_id>.json
-                const path = `data/chapters/${series.id}/${chId}.json`;
-                const existingFile = await fetchFromGithub(path);
-                await commitToGithub(path, chapterJson, `Bölüm İçeriği Güncellendi: ${chId}`, existingFile ? existingFile.sha : null);
-
-                // 2. Update series metadata in series.json reference
-                const dateToday = new Date().toISOString().split('T')[0];
-                const chapterRef = {
-                    id: chId,
-                    title: chapterJson.title,
-                    date: dateToday,
-                    is18: chapterJson.is18
-                };
-
-                if (!series.chapters) series.chapters = [];
-
-                if (indexVal !== "") {
-                    series.chapters[indexVal] = chapterRef;
-                } else {
-                    if (series.chapters.some(c => c.id === chId)) {
-                        alert("Bu seride bu ID'ye sahip bir bölüm zaten var.");
-                        return;
-                    }
-                    series.chapters.unshift(chapterRef); // En yeni bölümü en üste ekle
-                }
-
-                const fileData = await fetchFromGithub("data/series.json");
-                await commitToGithub("data/series.json", database, "Bölüm Referansı Güncellendi", fileData.sha);
-
-                cancelChapterForm();
-                renderChaptersList();
-                alert("Bölüm başarıyla kaydedildi.");
-            } catch (err) {
-                alert("Hata: " + err.message);
-            } finally {
-                hideLoader();
-            }
-        }
-
-        async function deleteChapter(index) {
-            if (!confirm("Bu bölümü silmek istediğinizden emin misiniz? (Bölüm dosyası ve referansı silinecektir)")) return;
-            showLoader("Bölüm siliniyor...");
-
-            const series = database[activeSeriesIndex];
-            const chRef = series.chapters[index];
-
-            try {
-                // 1. Delete chapter file if needed (via GitHub API DELETE, but for simplicity of purely client-side static we can also write an empty file or just delete the reference in series.json. To keep it clean, we can perform a commit to delete it)
-                const path = `data/chapters/${series.id}/${chRef.id}.json`;
-                const existingFile = await fetchFromGithub(path);
-                
-                if (existingFile) {
-                    const url = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/${path}`;
-                    await fetch(url, {
-                        method: "DELETE",
-                        headers: {
-                            "Authorization": `token ${githubConfig.token}`,
-                            "Content-Type": "application/json",
-                            "Accept": "application/vnd.github.v3+json"
-                        },
-                        body: JSON.stringify({
-                            message: `Bölüm Dosyası Silindi: ${chRef.id}`,
-                            sha: existingFile.sha,
-                            branch: githubConfig.branch
-                        })
-                    });
-                }
-
-                // 2. Remove from database
-                series.chapters.splice(index, 1);
-                const fileData = await fetchFromGithub("data/series.json");
-                await commitToGithub("data/series.json", database, "Bölüm Referansı Silindi", fileData.sha);
-
-                renderChaptersList();
-                alert("Bölüm başarıyla silindi.");
-            } catch (err) {
-                alert("Hata: " + err.message);
-            } finally {
-                hideLoader();
-            }
+        if (localStorage.getItem('mode') === 'darkmode') {
+            document.body.classList.add('dark-mode');
         }
     </script>
+
+    <!-- Kurulum Ekranı (İlk Açılışta PAT Tanımlama) -->
+    <div id="setupScreen" class="setup-screen">
+        <h2 style="text-align: center; color: var(--primary-color);"><i class="fa-solid fa-lock"></i> GitHub Bağlantısı</h2>
+        <p style="font-size: 13px; color: #666; text-align: center;">Yönetim panelinin çalışabilmesi için deponuzun izin token bilgilerini girmelisiniz.</p>
+        <div id="setupMsg" class="status-msg"></div>
+        <div class="form-group">
+            <label>GitHub Kullanıcı Adınız</label>
+            <input type="text" id="githubUser" placeholder="Örn: mikrokosmos-fb">
+        </div>
+        <div class="form-group">
+            <label>Depo (Repository) Adınız</label>
+            <input type="text" id="githubRepo" placeholder="Örn: mikrokosmos">
+        </div>
+        <div class="form-group">
+            <label>Branch Adı</label>
+            <input type="text" id="githubBranch" value="main" placeholder="Örn: main">
+        </div>
+        <div class="form-group">
+            <label>Personal Access Token (PAT)</label>
+            <input type="password" id="githubToken" placeholder="ghp_********************">
+            <small style="font-size: 11px; color: #888; margin-top: 5px;">GitHub ayarlarınızdan aldığınız "repo" izinli token kodunu girin.</small>
+        </div>
+        <button class="btn-submit" style="width: 100%;" onclick="saveConfig()">Bağlantıyı Kaydet ve Giriş Yap</button>
+    </div>
+
+    <!-- Yönetim Paneli Ana Ekranı -->
+    <div id="adminPanel" class="admin-container" style="display: none;">
+        <div class="flex jcsb aic" style="margin-bottom: 20px;">
+            <h2 style="color: var(--primary-color); margin: 0;"><i class="fa-solid fa-screwdriver-wrench"></i> Mikrokosmos Yönetim</h2>
+            <button onclick="logoutAdmin()" class="btn-submit" style="background: #555;">Bağlantıyı Kes</button>
+        </div>
+
+        <div id="globalMsg" class="status-msg"></div>
+
+        <div class="admin-nav">
+            <button id="nav-series" class="active" onclick="switchTab('series')">Yeni Seri Ekle</button>
+            <button id="nav-chapters" onclick="switchTab('chapters')">Yeni Bölüm Ekle</button>
+            <button id="nav-manage" onclick="switchTab('manage')">Serileri Yönet</button>
+        </div>
+
+        <!-- TAB 1: Yeni Seri Ekle -->
+        <div id="tab-series" class="tab-content active">
+            <h3><i class="fa-solid fa-book"></i> Yeni Seri Bilgileri</h3>
+            <div class="form-group">
+                <label>Seri Adı</label>
+                <input type="text" id="seriesTitle" placeholder="Örn: Solo Leveling">
+            </div>
+            <div class="form-group">
+                <label>Alternatif İsim(ler)</label>
+                <input type="text" id="seriesAltTitle" placeholder="Örn: Na Honjaman Level Up">
+            </div>
+            <div class="form-group">
+                <label>Açıklama / Özet</label>
+                <textarea id="seriesDescription" rows="4" placeholder="Serinin konusu..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Kapak Resmi URL'si</label>
+                <input type="text" id="seriesCover" placeholder="https://... veya imgbox linki">
+            </div>
+            <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label>Durum</label>
+                    <select id="seriesStatus">
+                        <option value="Devam Ediyor">Devam Ediyor</option>
+                        <option value="Tamamlandı">Tamamlandı</option>
+                        <option value="Güncel">Güncel</option>
+                        <option value="Yakında">Yakında</option>
+                        <option value="Bırakıldı">Bırakıldı</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tip</label>
+                    <select id="seriesType">
+                        <option value="Manga">Manga</option>
+                        <option value="Manhwa">Manhwa</option>
+                        <option value="Manhua">Manhua</option>
+                        <option value="Webtoon">Webtoon</option>
+                        <option value="Novel">Novel</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Kategoriler / Etiketler (Virgülle Ayırın)</label>
+                <input type="text" id="seriesGenres" placeholder="Aksiyon, Fantastik, Macera, Yaoi, Yuri">
+            </div>
+            <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label>Puan (1-10)</label>
+                    <input type="number" id="seriesScore" min="1" max="10" step="0.1" value="8.5">
+                </div>
+                <div class="form-group" style="justify-content: center; align-items: flex-start;">
+                    <label style="display: flex; align-items: center; gap: 10px; margin-top: 25px; cursor: pointer;">
+                        <input type="checkbox" id="seriesIs18" style="width: 20px; height: 20px;">
+                        <span>+18 / Yetişkin İçerik</span>
+                    </label>
+                </div>
+            </div>
+            <button class="btn-submit" onclick="submitSeries()">Seriyi Depoya Commit Et</button>
+        </div>
+
+        <!-- TAB 2: Yeni Bölüm Ekle -->
+        <div id="tab-chapters" class="tab-content">
+            <h3><i class="fa-solid fa-file-circle-plus"></i> Bölüm Bilgileri</h3>
+            <div class="form-group">
+                <label>Seri Seçin</label>
+                <select id="chapterSeriesSelect">
+                    <option value="">Lütfen Bekleyin, Seriler Yükleniyor...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Bölüm Başlığı / Numarası</label>
+                <input type="text" id="chapterTitle" placeholder="Örn: Bölüm 1 veya Cilt 1 - Bölüm 5">
+            </div>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="chapterIs18" style="width: 20px; height: 20px;">
+                    <span>Bu Bölüm +18 Uyarısı İçersin mi?</span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label>İçerik Tipi</label>
+                <select id="chapterContentType" onchange="toggleContentInputs()">
+                    <option value="webtoon">Webtoon (Resim Linkleri / Embed Kodlar)</option>
+                    <option value="novel">Novel (Doğrudan Metin / Text)</option>
+                </select>
+            </div>
+
+            <!-- Webtoon Giriş Alanı -->
+            <div id="webtoonInputArea" class="form-group">
+                <label>Resim Linkleri veya HTML Embed Kodları</label>
+                <textarea id="webtoonContent" rows="10" placeholder="Imgbox sitesinden aldığınız HTML/Embed kodlarını buraya yapıştırın veya alt alta her satıra bir resim linki koyun."></textarea>
+            </div>
+
+            <!-- Novel Giriş Alanı -->
+            <div id="novelInputArea" class="form-group" style="display: none;">
+                <label>Novel Metni</label>
+                <textarea id="novelContent" rows="15" placeholder="Novel bölüm metnini buraya yapıştırın. Paragraflar otomatik algılanacaktır."></textarea>
+            </div>
+
+            <button class="btn-submit" onclick="submitChapter()">Bölümü Depoya Commit Et</button>
+        </div>
+
+        <!-- TAB 3: Serileri Yönet -->
+        <div id="tab-manage" class="tab-content">
+            <h3><i class="fa-solid fa-list"></i> Mevcut Seriler</h3>
+            <div id="seriesListContainer">
+                <p>Seriler yükleniyor...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Dosyasını Bağlıyoruz -->
+    <script src="assets/js/admin.js"></script>
 </body>
 </html>
