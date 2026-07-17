@@ -5,7 +5,18 @@
     "type": "manhwa",
     "status": "Devam Ediyor",
     "thumb": "https://placehold.co/400x600/7b1fa2/white?text=Kapak",
-    "genres": ["Aksiyon", "Dram"],
+    "genres": [
+      "Aksiyon",
+      "Dram"
+    ],
     "desc": "Bu bir örnek açıklamadır."
+  },
+  {
+    "id": "00001",
+    "title": "Missing Love/ A Married Man",
+    "type": "manhwa",
+    "thumb": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhITRAyC8I30quuoWccSsSRrF3gsXJ3_y3zLqUOn5QKqWJ0Io5g5bUudAUvKcgIO7EuPTGJQdZbiM2zZQO6nRXZtHOH5c1_1rCxP2EfCmg08IjtNY3XikvGxvPy3M3xTEUV2KKVTR94viJV_T1a8CMtGvjzAbuy6MsEYpImXvNUmXoLk5JvRvimgQh9/s1600/20210910170111_1631260871231%20%283%29.webp",
+    "desc": "Bir fahişe olarak gangsterlerin acımasız dünyasına atılan Geom, insanlığın en çirkin yanlarını görmüştür. Ortadan kaybolduğu acımasız sekiz yılın ardından, bir zamanlar sevdiği adam olan Wooyeon ile yaklaşan evliliğini kutlamak için yeniden bir araya gelir. Wooyeon'u çok derin ve karanlık bir uçurumun içindeki bir ışık olarak gören Geom, kendini yeniden ona doğru çekilirken bulur. Ancak sapkın Rieder ve saplantılı Savcı Lee tarafından ayak bileklerine pranga vurulmuşken, kurtuluş için gerçekten bir umut var mıdır?",
+    "status": "Devam Ediyor"
   }
 ]
