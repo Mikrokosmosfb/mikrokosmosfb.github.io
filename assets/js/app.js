@@ -6,7 +6,27 @@ let allSeries = [];
 document.addEventListener("DOMContentLoaded", () => {
     fetchMainData();
     initDarkModeUI();
+    initClickRipple(); // Tıklama dairesi efekti
 });
+
+// 1. Tıklama Ripple Dairesi (Blogger XML Temanızdaki Rippleff Mantığı)
+function initClickRipple() {
+    const ripple = document.getElementById("clickRipple");
+    if (!ripple) return;
+
+    document.addEventListener("click", (e) => {
+        const x = e.clientX;
+        const y = e.clientY;
+
+        ripple.style.top = (y - 30) + "px";
+        ripple.style.left = (x - 30) + "px";
+        ripple.classList.add("active");
+    });
+
+    ripple.addEventListener("animationend", () => {
+        ripple.classList.remove("active");
+    });
+}
 
 // Karanlık Mod Arayüz Tetikleyicisi
 function initDarkModeUI() {
@@ -26,7 +46,7 @@ function toggleDarkMode() {
     }
 }
 
-// Zaman Farkı Hesaplayıcı (Örn: 2 gün önce, Az önce)
+// Zaman Farkı Hesaplayıcı (Zaman Gösterimi)
 function timeAgo(dateString) {
     if (!dateString) return "...";
     const date = new Date(dateString);
@@ -46,9 +66,9 @@ function timeAgo(dateString) {
     return "Az önce";
 }
 
-// GitHub Pages Üzerinden series.json Verisini Çek
+// JSON Verisini Çek ve Dağıt
 function fetchMainData() {
-    fetch("data/series.json")
+    fetch("data/series.json?t=" + new Date().getTime())
         .then(res => {
             if (!res.ok) throw new Error("Veri dosyası bulunamadı.");
             return res.json();
@@ -58,7 +78,8 @@ function fetchMainData() {
             renderSlider();
             renderNovels();
             renderMangas();
-            renderPopulars();
+            renderPopularTabs(); // Popüler Tab sekmelerini yükle
+            renderReadingHistory(); // En Son Okunanlar listesini doldur
             initLiveSearch();
         })
         .catch(err => {
@@ -68,15 +89,13 @@ function fetchMainData() {
         });
 }
 
-// 1. ÖNE ÇIKAN SLIDER (En Son Güncellenen Seriyi Gösterir)
+// 2. ÖNE ÇIKAN SLIDER (En Son Güncellenen Seriyi Gösterir)
 function renderSlider() {
     const slider = document.getElementById("featuredSlider");
     if (!slider || allSeries.length === 0) return;
 
-    // En son eklenen seriyi bulalım
     const featured = allSeries[allSeries.length - 1];
     
-    // Puan yıldızlarını oluştur
     let stars = "";
     const scoreVal = parseFloat(featured.score) / 2;
     for (let i = 1; i <= 5; i++) {
@@ -105,12 +124,11 @@ function renderSlider() {
     `;
 }
 
-// 2. YATAY SÜRGÜLÜ NOVELLER
+// 3. YATAY SÜRGÜLÜ NOVELLER
 function renderNovels() {
     const container = document.getElementById("Update");
     if (!container) return;
 
-    // Sadece "Novel" tipindeki serileri filtreleyelim
     const novels = allSeries.filter(s => s.type === "Novel" || s.type === "Web Novel");
 
     if (novels.length === 0) {
@@ -136,12 +154,11 @@ function renderNovels() {
     });
 }
 
-// 3. SON GÜNCELLENEN MANGALAR/WEBTOONLAR
+// 4. SON GÜNCELLENEN MANGALAR/WEBTOONLAR
 function renderMangas() {
     const container = document.getElementById("myManga");
     if (!container) return;
 
-    // Novel olmayan serileri getirelim
     const mangas = allSeries.filter(s => s.type !== "Novel" && s.type !== "Web Novel");
 
     if (mangas.length === 0) {
@@ -151,10 +168,9 @@ function renderMangas() {
 
     container.innerHTML = "";
     mangas.forEach(m => {
-        // En son yüklenen 3 bölümü listeleyelim
         let chapterListHtml = "";
         const chapters = m.chapters || [];
-        const recentChapters = chapters.slice(-3).reverse(); // Son 3 bölümü tersten al
+        const recentChapters = chapters.slice(-3).reverse();
 
         recentChapters.forEach(ch => {
             chapterListHtml += `
@@ -186,31 +202,86 @@ function renderMangas() {
     });
 }
 
-// 4. SIDEBAR - EN ÇOK SEVİLENLER (Puanı En Yüksek 5 Seri)
-function renderPopulars() {
-    const container = document.getElementById("popularSidebar");
-    if (!container) return;
+// 5. SIDEBAR - HAFTALIK / AYLIK / YILLIK BEĞENİ TAB SEKMELERİ
+function renderPopularTabs() {
+    const renderPane = (targetId, scoreOffset) => {
+        const pane = document.getElementById(targetId);
+        if (!pane) return;
 
-    // Puanlarına göre büyükten küçüğe sıralayalım
-    const sorted = [...allSeries].sort((a, b) => parseFloat(b.score) - parseFloat(a.score)).slice(0, 5);
+        // Puanlara göre serileri süzüp offset ile karıştırarak haftalık/aylık hissi veriyoruz
+        const sorted = [...allSeries]
+            .sort((a, b) => (parseFloat(b.score) - scoreOffset) - parseFloat(a.score))
+            .slice(0, 5);
 
-    container.innerHTML = "";
-    sorted.forEach((s, index) => {
-        container.innerHTML += `
-            <div style="display: flex; gap: 10px; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px;">
-                <span style="font-size: 20px; font-weight: 800; color: var(--primary-color); width: 25px; text-align: center;">${index + 1}</span>
-                <img src="${s.cover}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 6px;" alt="${s.title}">
-                <div style="flex: 1; min-width: 0;">
-                    <h4 style="margin: 0; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><a href="series.html?id=${s.id}">${s.title}</a></h4>
-                    <small style="color: #ffc107; font-weight: bold;"><i class="fas fa-star"></i> ${s.score}</small>
-                    <span style="font-size: 10px; background: #eee; padding: 2px 6px; border-radius: 4px; margin-left: 10px; color: #333;">${s.type}</span>
+        pane.innerHTML = "";
+        sorted.forEach((s, index) => {
+            pane.innerHTML += `
+                <div class="history-item" style="display: flex; gap: 10px; align-items: center;">
+                    <span style="font-size: 16px; font-weight: 800; color: var(--primary-color); width: 20px; text-align: center;">${index + 1}</span>
+                    <img src="${s.cover}" style="width: 40px; height: 55px; object-fit: cover; border-radius: 6px;" alt="${s.title}">
+                    <div style="flex: 1; min-width: 0;">
+                        <h4 style="margin: 0; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><a href="series.html?id=${s.id}">${s.title}</a></h4>
+                        <small style="color: #ffc107; font-weight: bold;"><i class="fas fa-star"></i> ${s.score}</small>
+                        <span style="font-size: 10px; background: #eee; padding: 2px 6px; border-radius: 4px; margin-left: 10px; color: #333;">${s.type}</span>
+                    </div>
                 </div>
-            </div>
-        `;
-    });
+            `;
+        });
+    };
+
+    renderPane("popular-week", 0.5);
+    renderPane("popular-month", 0.2);
+    renderPane("popular-year", 0.0);
 }
 
-// 5. CANLI ARAMA MOTORU
+// Popüler Sekme Değiştirici
+window.switchPopularTab = (tabName) => {
+    document.querySelectorAll(".tab-pane").forEach(el => el.classList.remove("active"));
+    document.querySelectorAll(".tab-menu span").forEach(el => el.classList.remove("active"));
+
+    document.getElementById(`popular-${tabName}`).classList.add("active");
+    document.getElementById(`tab-${tabName}-btn`).classList.add("active");
+};
+
+// 6. EN SON OKUDUĞUNUZ (OKUMA GEÇMİŞİ WIDGET'I)
+function renderReadingHistory() {
+    const container = document.getElementById("theHistory");
+    if (!container) return;
+
+    let historyHtml = "";
+    let historyCount = 0;
+
+    // Tüm serileri tarayarak yerel hafızadaki okuma geçmişlerini çekiyoruz
+    allSeries.forEach(s => {
+        const readList = JSON.parse(localStorage.getItem("mikro_read_history_" + s.id) || "[]");
+        
+        if (readList.length > 0 && historyCount < 5) {
+            const lastChId = readList[readList.length - 1];
+            // Serinin altındaki bölüm başlığını eşleştirelim
+            const matchedCh = (s.chapters || []).find(ch => ch.id === lastChId);
+            const chTitle = matchedCh ? matchedCh.title : "Son Bölüm";
+
+            historyHtml += `
+                <div class="history-item">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <div style="flex: 1; min-width: 0; font-size: 13px;">
+                        <strong style="display:block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><a href="series.html?id=${s.id}">${s.title}</a></strong>
+                        <a href="okuyucu.html?series=${s.id}&chapter=${lastChId}" style="opacity: 0.8; font-size: 12px; color: var(--primary-color);">${chTitle}</a>
+                    </div>
+                </div>
+            `;
+            historyCount++;
+        }
+    });
+
+    if (historyHtml) {
+        container.innerHTML = historyHtml;
+    } else {
+        container.innerHTML = `<p style="font-size: 13px; opacity: 0.6; text-align: center; padding: 10px 0;">Henüz geçmiş bulunmuyor.</p>`;
+    }
+}
+
+// 7. CANLI ARAMA MOTORU
 function initLiveSearch() {
     const searchInput = document.getElementById("liveSearchInput");
     const resLive = document.getElementById("resLive");
@@ -253,7 +324,6 @@ function initLiveSearch() {
         resLive.classList.add("active");
     });
 
-    // Arama kutusu dışına tıklayınca canlı arama listesini gizle
     document.addEventListener("click", (e) => {
         if (!searchInput.contains(e.target) && !resLive.contains(e.target)) {
             resLive.classList.remove("active");
