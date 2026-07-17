@@ -49,14 +49,26 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px;
+            padding: 12px 15px;
             border-bottom: 1px solid #ddd;
         }
-        .series-list-item button {
+        .series-list-item .actions {
+            display: flex;
+            gap: 8px;
+        }
+        .series-list-item button.btn-del {
             background: #d9534f;
             color: white;
             border: none;
-            padding: 5px 10px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .series-list-item button.btn-edit {
+            background: var(--secclr);
+            color: white;
+            border: none;
+            padding: 6px 12px;
             border-radius: 4px;
             cursor: pointer;
         }
@@ -77,6 +89,30 @@
             color: #721c24;
             display: block;
         }
+        /* Arama kutusu stili */
+        .search-filter-input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            outline: none;
+        }
+        .dark-mode .search-filter-input {
+            background: #111;
+            color: white;
+            border-color: #444;
+        }
+        .edit-badge {
+            background: #ffc107;
+            color: #333;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 12px;
+            margin-left: 10px;
+            display: none;
+        }
     </style>
 </head>
 <body id="modeSwitch">
@@ -86,7 +122,7 @@
         }
     </script>
 
-    <!-- Kurulum Ekranı (İlk Açılışta PAT Tanımlama) -->
+    <!-- Kurulum Ekranı -->
     <div id="setupScreen" class="setup-screen">
         <h2 style="text-align: center; color: var(--primary-color);"><i class="fa-solid fa-lock"></i> GitHub Bağlantısı</h2>
         <p style="font-size: 13px; color: #666; text-align: center;">Yönetim panelinin çalışabilmesi için deponuzun izin token bilgilerini girmelisiniz.</p>
@@ -106,7 +142,6 @@
         <div class="form-group">
             <label>Personal Access Token (PAT)</label>
             <input type="password" id="githubToken" placeholder="ghp_********************">
-            <small style="font-size: 11px; color: #888; margin-top: 5px;">GitHub ayarlarınızdan aldığınız "repo" izinli token kodunu girin.</small>
         </div>
         <button class="btn-submit" style="width: 100%;" onclick="saveConfig()">Bağlantıyı Kaydet ve Giriş Yap</button>
     </div>
@@ -114,35 +149,43 @@
     <!-- Yönetim Paneli Ana Ekranı -->
     <div id="adminPanel" class="admin-container" style="display: none;">
         <div class="flex jcsb aic" style="margin-bottom: 20px;">
-            <h2 style="color: var(--primary-color); margin: 0;"><i class="fa-solid fa-screwdriver-wrench"></i> Mikrokosmos Yönetim</h2>
+            <div class="flex aic">
+                <h2 style="color: var(--primary-color); margin: 0;"><i class="fa-solid fa-screwdriver-wrench"></i> Mikrokosmos Yönetim</h2>
+                <span id="editModeBadge" class="edit-badge">DÜZENLEME MODU</span>
+            </div>
             <button onclick="logoutAdmin()" class="btn-submit" style="background: #555;">Bağlantıyı Kes</button>
         </div>
 
         <div id="globalMsg" class="status-msg"></div>
 
         <div class="admin-nav">
-            <button id="nav-series" class="active" onclick="switchTab('series')">Yeni Seri Ekle</button>
+            <button id="nav-series" class="active" onclick="switchTab('series')">Yeni/Düzenle Seri</button>
             <button id="nav-chapters" onclick="switchTab('chapters')">Yeni Bölüm Ekle</button>
             <button id="nav-manage" onclick="switchTab('manage')">Serileri Yönet</button>
         </div>
 
-        <!-- TAB 1: Yeni Seri Ekle -->
+        <!-- TAB 1: Yeni/Düzenle Seri Ekle -->
         <div id="tab-series" class="tab-content active">
-            <h3><i class="fa-solid fa-book"></i> Yeni Seri Bilgileri</h3>
+            <h3 id="formTitle"><i class="fa-solid fa-book"></i> Yeni Seri Bilgileri</h3>
             <div class="form-group">
-                <label>Seri Adı</label>
+                <label>Seri Adı *</label>
                 <input type="text" id="seriesTitle" placeholder="Örn: Solo Leveling">
+            </div>
+            <div class="form-group">
+                <label>Seri Özel Link İsmi (Slug / Link URL) *</label>
+                <input type="text" id="seriesSlug" placeholder="Örn: solo-leveling-turkce-oku (Boş bırakırsanız otomatik oluşturulur)">
+                <small style="font-size: 11px; color:#888; margin-top:5px;">Lütfen Türkçe karakter, boşluk ve büyük harf kullanmayın. (Örn: `manga-adi` şeklinde yazın)</small>
             </div>
             <div class="form-group">
                 <label>Alternatif İsim(ler)</label>
                 <input type="text" id="seriesAltTitle" placeholder="Örn: Na Honjaman Level Up">
             </div>
             <div class="form-group">
-                <label>Açıklama / Özet</label>
+                <label>Açıklama / Özet *</label>
                 <textarea id="seriesDescription" rows="4" placeholder="Serinin konusu..."></textarea>
             </div>
             <div class="form-group">
-                <label>Kapak Resmi URL'si</label>
+                <label>Kapak Resmi URL'si *</label>
                 <input type="text" id="seriesCover" placeholder="https://... veya imgbox linki">
             </div>
             <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
@@ -183,20 +226,24 @@
                     </label>
                 </div>
             </div>
-            <button class="btn-submit" onclick="submitSeries()">Seriyi Depoya Commit Et</button>
+            <div style="display: flex; gap: 10px;">
+                <button id="btnSubmitSeries" class="btn-submit" onclick="submitSeries()">Seriyi Depoya Commit Et</button>
+                <button id="btnCancelEdit" class="btn-submit" onclick="cancelEdit()" style="background: #777; display: none;">Düzenlemeyi İptal Et</button>
+            </div>
         </div>
 
         <!-- TAB 2: Yeni Bölüm Ekle -->
         <div id="tab-chapters" class="tab-content">
             <h3><i class="fa-solid fa-file-circle-plus"></i> Bölüm Bilgileri</h3>
             <div class="form-group">
-                <label>Seri Seçin</label>
+                <label>Seri Ara & Seç *</label>
+                <input type="text" id="chapterSeriesSearch" oninput="filterSeriesDropdown()" placeholder="Seri ismini yazarak arayın..." class="search-filter-input">
                 <select id="chapterSeriesSelect">
                     <option value="">Lütfen Bekleyin, Seriler Yükleniyor...</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>Bölüm Başlığı / Numarası</label>
+                <label>Bölüm Başlığı / Numarası *</label>
                 <input type="text" id="chapterTitle" placeholder="Örn: Bölüm 1 veya Cilt 1 - Bölüm 5">
             </div>
             <div class="form-group" style="margin-bottom: 20px;">
@@ -237,7 +284,6 @@
         </div>
     </div>
 
-    <!-- JavaScript Dosyasını Bağlıyoruz -->
     <script src="assets/js/admin.js"></script>
 </body>
 </html>
