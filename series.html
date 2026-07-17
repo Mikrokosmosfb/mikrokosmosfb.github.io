@@ -1,0 +1,407 @@
+<!-- series.html -->
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seri Detayları - Mikrokosmos</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* Seri Detay Sayfasına Özel Blur & Banner Tasarımı */
+        .bg-photo-container {
+            position: relative;
+            height: 300px;
+            overflow: hidden;
+            width: 100%;
+        }
+        .hero-background {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            filter: blur(10px) saturate(1.8) brightness(40%);
+            transform: scale(1.1);
+        }
+        .series-header-grid {
+            margin-top: -150px;
+            position: relative;
+            z-index: 10;
+        }
+        .series-cover-wrapper {
+            text-align: center;
+        }
+        .series-cover-img {
+            width: 200px;
+            height: 280px;
+            object-fit: cover;
+            border-radius: var(--border-radius);
+            border: 3px solid var(--primary-color);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .series-info-box {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .dark-mode .series-info-box {
+            background: #222;
+        }
+        /* Bölüm Listesi Arama ve Sıralama Barı */
+        .chapter-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #333;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 10px 10px 0 0;
+        }
+        .chapter-search-box {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .chapter-search-box input {
+            flex: 1;
+            padding: 10px 15px;
+            border-radius: 30px;
+            border: 1px solid #ddd;
+            outline: none;
+            font-size: 14px;
+        }
+        .dark-mode .chapter-search-box input {
+            background: #2c2c2c;
+            border-color: #444;
+            color: white;
+        }
+        .chapter-list-container {
+            background: white;
+            border-radius: 0 0 10px 10px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .dark-mode .chapter-list-container {
+            background: #222;
+        }
+        .chapter-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            transition: 0.2s;
+        }
+        .dark-mode .chapter-item {
+            border-bottom-color: #333;
+        }
+        .chapter-item:hover {
+            background: rgba(123, 31, 162, 0.05);
+        }
+        .chapter-item a {
+            font-weight: bold;
+            font-size: 15px;
+        }
+        /* +18 Yaş Uyarısı Pop-up (Blogger'daki resWarn tasarımı) */
+        .resWarn {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 99999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .resFile {
+            max-width: 500px;
+            background: #1e1325;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid var(--primary-color);
+            color: white;
+        }
+        .resBtn {
+            padding: 10px 25px;
+            border-radius: 30px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+        }
+        #resEn { background: var(--primary-color); color: white; }
+        #resEx { background: #555; color: white; }
+    </style>
+</head>
+<body id="modeSwitch">
+    <script>
+        if (localStorage.getItem('mode') === 'darkmode') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+
+    <!-- +18 Yaş Onay Pop-up -->
+    <div id="ageWarning" class="resWarn">
+        <div class="resFile">
+            <h2 style="color: #ff6464; margin-top:0;"><i class="fa-solid fa-circle-exclamation"></i> YAŞ SINIRI UYARISI</h2>
+            <p style="line-height: 1.6; font-size: 15px;">Bu seri şiddet, kan, psikolojik etki veya cinsel sahneler içermektedir. 18 yaşından küçüklerin okuması önerilmez.</p>
+            <p style="font-weight: bold; margin-bottom: 25px;">Devam etmek istiyor musunuz?</p>
+            <button id="resEn" class="resBtn" onclick="acceptAgeWarning()">Evet, 18 Yaşından Büyüğüm</button>
+            <button id="resEx" class="resBtn" onclick="rejectAgeWarning()">Hayır, Ana Sayfaya Dön</button>
+        </div>
+    </div>
+
+    <!-- Üst Başlık (Navbar) -->
+    <header>
+        <div class="max-w flex jcsb aic">
+            <a href="index.html" class="header-logo"><i class="fa-solid fa-space-awesome"></i> MİKROKOSMOS</a>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Ana Sayfa</a></li>
+                    <li><a href="seriler.html">Seriler</a></li>
+                    <li><a href="bookmark.html">Kütüphanem</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Blur Efektli Arka Plan Resmi -->
+    <div class="bg-photo-container">
+        <div class="hero-background" id="heroBg" style="background-image: url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh_placeholder/s600/default.png');"></div>
+    </div>
+
+    <!-- Seri Bilgileri Grid Alanı -->
+    <div class="max-w series-header-grid">
+        <div class="grid" style="grid-template-columns: 1fr; gap: 20px;">
+            <div class="flex fdc-375" style="gap: 25px; align-items: flex-start;">
+                
+                <!-- Sol Sütun: Kapak Resmi & Butonlar -->
+                <div class="series-cover-wrapper" style="width: 100%; max-width: 220px; flex-shrink: 0; margin: 0 auto;">
+                    <img id="seriesCover" class="series-cover-img" src="" alt="Yükleniyor...">
+                    
+                    <!-- Kütüphaneye Ekle Butonu -->
+                    <button id="bookmarkBtn" class="btn-submit" onclick="toggleBookmark()" style="width: 100%; margin-top: 15px; border-radius: 30px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <i class="fa-solid fa-bookmark"></i> <span id="bookmarkText">Kütüphaneye Ekle</span>
+                    </button>
+                </div>
+
+                <!-- Sağ Sütun: Metin Bilgileri -->
+                <div class="series-info-box" style="flex: 1; width: 100%; box-sizing: border-box;">
+                    <h1 id="seriesTitle" style="margin: 0 0 5px 0; font-size: 32px; color: var(--primary-color);">Yükleniyor...</h1>
+                    <h3 id="seriesAltTitle" style="margin: 0 0 15px 0; font-size: 16px; opacity: 0.6; font-weight: normal;">...</h3>
+                    
+                    <div style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <span id="seriesType" class="tag" style="background: var(--primary-color); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;">...</span>
+                        <span id="seriesStatus" class="tag" style="background: #333; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;">...</span>
+                        <span id="seriesScore" class="tag" style="background: #ffc107; color: #333; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;"><i class="fas fa-star"></i> ...</span>
+                    </div>
+
+                    <p style="font-weight: bold; margin-bottom: 5px; font-size: 15px;">ÖZET / KONUSU:</p>
+                    <p id="seriesDescription" style="margin: 0 0 20px 0; line-height: 1.6; font-size: 14.5px; opacity: 0.9;">...</p>
+
+                    <div style="border-top: 1px solid #eee; padding-top: 15px;">
+                        <p style="font-size: 13.5px; margin: 5px 0;"><strong>Kategoriler:</strong> <span id="seriesGenres" style="opacity: 0.8;">...</span></p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- BÖLÜM LİSTESİ ALANI -->
+        <div style="margin-top: 40px; margin-bottom: 50px;">
+            <div class="chapter-list-header">
+                <span style="font-weight: bold; font-size: 16px;"><i class="fa-solid fa-list-ul"></i> Bölüm Listesi</span>
+                <button id="sortButton" onclick="toggleSortOrder()" style="background: transparent; border: none; color: white; cursor: pointer; font-size: 14px; font-weight: bold;">
+                    <i class="fa-solid fa-arrow-down-up-across-line"></i> Sıralamayı Değiştir
+                </button>
+            </div>
+            
+            <div class="chapter-search-box">
+                <input type="text" id="chapterSearchInput" oninput="filterChapters()" placeholder="Bölüm adı veya numarası ara...">
+            </div>
+
+            <div class="chapter-list-container">
+                <div id="chapterList" style="display: flex; flex-direction: column;">
+                    <!-- JS ile Bölümler Buraya Akacak -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Seri Detay Sayfası JS Motoru -->
+    <script>
+        let currentSeries = null;
+        let isNewestFirst = true; // Varsayılan sıralama: Yeniden eskiye
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const seriesId = urlParams.get("id");
+
+            if (!seriesId) {
+                alert("Hata: Seri kimliği (ID) bulunamadı.");
+                window.location.href = "index.html";
+                return;
+            }
+
+            fetchSeriesDetails(seriesId);
+        });
+
+        // Verileri JSON dosyasından çek
+        function fetchSeriesDetails(seriesId) {
+            fetch("data/series.json")
+                .then(res => res.json())
+                .then(data => {
+                    currentSeries = data.find(s => s.id === seriesId);
+                    if (!currentSeries) {
+                        alert("Hata: Aradığınız seri bulunamadı.");
+                        window.location.href = "index.html";
+                        return;
+                    }
+                    
+                    checkAgeRating();
+                    renderSeriesDetails();
+                    checkBookmarkStatus();
+                })
+                .catch(err => {
+                    console.error("Seri detayları çekilirken hata:", err);
+                });
+        }
+
+        // Yaş sınırı kontrolü (+18 ise pop-up açar)
+        function checkAgeRating() {
+            if (currentSeries.is18) {
+                // Eğer daha önce onay vermediyse pop-up göster
+                if (sessionStorage.getItem("age_verified_" + currentSeries.id) !== "true") {
+                    document.getElementById("ageWarning").style.display = "flex";
+                }
+            }
+        }
+
+        function acceptAgeWarning() {
+            sessionStorage.setItem("age_verified_" + currentSeries.id, "true");
+            document.getElementById("ageWarning").style.display = "none";
+        }
+
+        function rejectAgeWarning() {
+            window.location.href = "index.html";
+        }
+
+        // Seri verilerini arayüze yerleştirme
+        function renderSeriesDetails() {
+            document.getElementById("heroBg").style.backgroundImage = `url('${currentSeries.cover}')`;
+            document.getElementById("seriesCover").src = currentSeries.cover;
+            document.getElementById("seriesTitle").innerText = currentSeries.title;
+            document.getElementById("seriesAltTitle").innerText = currentSeries.altTitle || "Alternatif ismi bulunmuyor.";
+            document.getElementById("seriesType").innerText = currentSeries.type;
+            document.getElementById("seriesStatus").innerText = currentSeries.status;
+            document.getElementById("seriesScore").innerHTML = `<i class="fas fa-star"></i> ${currentSeries.score}`;
+            document.getElementById("seriesDescription").innerText = currentSeries.description;
+            document.getElementById("seriesGenres").innerText = currentSeries.genres.join(", ") || "Belirtilmemiş";
+
+            // Başlığı sayfa sekmesine yazdır
+            document.title = `${currentSeries.title} Türkçe Oku - Mikrokosmos`;
+
+            renderChapters();
+        }
+
+        // Bölüm Listesini Oluşturma
+        function renderChapters() {
+            const listContainer = document.getElementById("chapterList");
+            if (!listContainer) return;
+
+            let chapters = [...(currentSeries.chapters || [])];
+
+            if (chapters.length === 0) {
+                listContainer.innerHTML = "<p style='padding:15px; color:#999; text-align:center;'>Bu seriye ait henüz bölüm yüklenmemiş.</p>";
+                return;
+            }
+
+            // Sıralamayı uygula
+            if (isNewestFirst) {
+                chapters.reverse(); // En son eklenen en üstte
+            }
+
+            listContainer.innerHTML = "";
+            chapters.forEach(ch => {
+                const is18Badge = ch.is18 ? `<span style="background:#ff6464; color:white; font-size:10px; padding:2px 6px; border-radius:4px; margin-left:10px; font-weight:bold;">+18</span>` : "";
+                
+                listContainer.innerHTML += `
+                    <div class="chapter-item" data-title="${ch.title.toLowerCase()}">
+                        <a href="okuyucu.html?series=${currentSeries.id}&chapter=${ch.id}">${ch.title} ${is18Badge}</a>
+                        <span style="font-size:12px; opacity:0.6;">${ch.date}</span>
+                    </div>
+                `;
+            });
+        }
+
+        // Bölüm Listesi Arama Filtresi
+        function filterChapters() {
+            const query = document.getElementById("chapterSearchInput").value.trim().toLowerCase();
+            const items = document.querySelectorAll(".chapter-item");
+            
+            items.forEach(item => {
+                const title = item.getAttribute("data-title");
+                if (title.includes(query)) {
+                    item.style.display = "flex";
+                } else {
+                    item.style.display = "none";
+                }
+            });
+        }
+
+        // Sıralamayı Değiştirme Butonu (Tersine Çevir)
+        function toggleSortOrder() {
+            isNewestFirst = !isNewestFirst;
+            renderChapters();
+        }
+
+        // --- KÜTÜPHANE (BOOKMARK) SİSTEMİ ---
+        function getBookmarks() {
+            return JSON.parse(localStorage.getItem("mikro_bookmarks") || "[]");
+        }
+
+        function checkBookmarkStatus() {
+            const bookmarks = getBookmarks();
+            const isBookmarked = bookmarks.some(b => b.id === currentSeries.id);
+            const btnText = document.getElementById("bookmarkText");
+            const btn = document.getElementById("bookmarkBtn");
+
+            if (isBookmarked) {
+                btnText.innerText = "Kütüphaneden Çıkar";
+                btn.style.background = "#555";
+            } else {
+                btnText.innerText = "Kütüphaneye Ekle";
+                btn.style.background = "var(--primary-color)";
+            }
+        }
+
+        function toggleBookmark() {
+            let bookmarks = getBookmarks();
+            const index = bookmarks.findIndex(b => b.id === currentSeries.id);
+
+            if (index > -1) {
+                // Zaten ekliyse çıkar
+                bookmarks.splice(index, 1);
+                alert("Seri kütüphanenizden çıkarıldı.");
+            } else {
+                // Ekli değilse ekle
+                bookmarks.push({
+                    id: currentSeries.id,
+                    title: currentSeries.title,
+                    cover: currentSeries.cover,
+                    type: currentSeries.type,
+                    score: currentSeries.score
+                });
+                alert("Seri kütüphanenize başarıyla eklendi!");
+            }
+
+            localStorage.setItem("mikro_bookmarks", JSON.stringify(bookmarks));
+            checkBookmarkStatus();
+        }
+    </script>
+</body>
+</html>
