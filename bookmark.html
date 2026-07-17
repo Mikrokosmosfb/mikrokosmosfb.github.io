@@ -1,0 +1,107 @@
+<!-- bookmark.html -->
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kütüphanem - Mikrokosmos</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .bookmark-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+            padding: 15px 0;
+        }
+        .remove-btn {
+            background: #d9534f;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            width: 100%;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body id="modeSwitch">
+    <script>
+        if (localStorage.getItem('mode') === 'darkmode') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+
+    <!-- Navbar -->
+    <header>
+        <div class="max-w flex jcsb aic">
+            <a href="index.html" class="header-logo"><i class="fa-solid fa-space-awesome"></i> MİKROKOSMOS</a>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Ana Sayfa</a></li>
+                    <li><a href="seriler.html">Seriler</a></li>
+                    <li><a href="bookmark.html" style="border-bottom: 2px solid white;">Kütüphanem</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="max-w" style="margin-top: 30px; margin-bottom: 50px;">
+        <h2 style="color: var(--primary-color); border-bottom: 1px solid #ddd; padding-bottom: 10px;"><i class="fa-solid fa-bookmark"></i> Kişisel Kütüphanem</h2>
+        <p style="font-size: 14px; opacity: 0.8; margin-bottom: 30px;">Kütüphanenize kaydettiğiniz seriler yerel olarak tarayıcınızda saklanır.</p>
+
+        <div id="bookmarkContainer" class="bookmark-grid">
+            <!-- JS ile Kaydedilen Seriler Listelenecek -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            renderBookmarks();
+        });
+
+        function getBookmarks() {
+            return JSON.parse(localStorage.getItem("mikro_bookmarks") || "[]");
+        }
+
+        function renderBookmarks() {
+            const container = document.getElementById("bookmarkContainer");
+            const bookmarks = getBookmarks();
+
+            if (bookmarks.length === 0) {
+                container.innerHTML = `<p style="color:#999; padding: 40px; text-align:center; grid-column: 1/-1;">Kütüphanenizde henüz hiçbir seri bulunmuyor. Detay sayfalarından dilediğiniz serileri ekleyebilirsiniz.</p>`;
+                return;
+            }
+
+            container.innerHTML = "";
+            bookmarks.forEach(s => {
+                const badgeClass = s.type.toLowerCase();
+                container.innerHTML += `
+                    <div class="bookItem" id="bookmark-card-${s.id}">
+                        <a href="series.html?id=${s.id}">
+                            <div class="snippet-thumbnail">
+                                <img src="${s.cover}" alt="${s.title}">
+                                <span class="po ${badgeClass}">${s.type}</span>
+                            </div>
+                        </a>
+                        <div class="data" style="padding: 10px 10px 0 10px;">
+                            <h2 style="height: 38px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;"><a href="series.html?id=${s.id}">${s.title}</a></h2>
+                        </div>
+                        <button class="remove-btn" onclick="removeBookmark('${s.id}')"><i class="fa-solid fa-trash"></i> Listeden Çıkar</button>
+                    </div>
+                `;
+            });
+        }
+
+        function removeBookmark(id) {
+            let bookmarks = getBookmarks();
+            bookmarks = bookmarks.filter(b => b.id !== id);
+            localStorage.setItem("mikro_bookmarks", JSON.stringify(bookmarks));
+            renderBookmarks();
+        }
+    </script>
+</body>
+</html>
