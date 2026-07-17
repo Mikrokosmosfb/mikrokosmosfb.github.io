@@ -14,7 +14,10 @@
             margin-bottom: 20px;
             border-bottom: 2px solid var(--primary-color);
             padding-bottom: 10px;
+            overflow-x: auto;
+            scrollbar-width: none;
         }
+        .admin-nav::-webkit-scrollbar { display: none; }
         .admin-nav button {
             background: #eee;
             border: none;
@@ -23,6 +26,7 @@
             font-weight: bold;
             border-radius: 6px;
             color: #333;
+            white-space: nowrap;
         }
         .admin-nav button.active {
             background: var(--primary-color);
@@ -89,7 +93,6 @@
             color: #721c24;
             display: block;
         }
-        /* Arama kutusu stili */
         .search-filter-input {
             padding: 10px;
             border: 1px solid #ccc;
@@ -97,6 +100,8 @@
             margin-bottom: 10px;
             font-size: 14px;
             outline: none;
+            width: 100%;
+            box-sizing: border-box;
         }
         .dark-mode .search-filter-input {
             background: #111;
@@ -151,7 +156,8 @@
         <div class="flex jcsb aic" style="margin-bottom: 20px;">
             <div class="flex aic">
                 <h2 style="color: var(--primary-color); margin: 0;"><i class="fa-solid fa-screwdriver-wrench"></i> Mikrokosmos Yönetim</h2>
-                <span id="editModeBadge" class="edit-badge">DÜZENLEME MODU</span>
+                <span id="editModeBadge" class="edit-badge">SERİ DÜZENLEME MODU</span>
+                <span id="chEditModeBadge" class="edit-badge" style="background:#00bcd4; color:white;">BÖLÜM DÜZENLEME MODU</span>
             </div>
             <button onclick="logoutAdmin()" class="btn-submit" style="background: #555;">Bağlantıyı Kes</button>
         </div>
@@ -159,12 +165,13 @@
         <div id="globalMsg" class="status-msg"></div>
 
         <div class="admin-nav">
-            <button id="nav-series" class="active" onclick="switchTab('series')">Yeni/Düzenle Seri</button>
-            <button id="nav-chapters" onclick="switchTab('chapters')">Yeni Bölüm Ekle</button>
+            <button id="nav-series" class="active" onclick="switchTab('series')">Seri Ekle/Düzenle</button>
+            <button id="nav-chapters" onclick="switchTab('chapters')">Bölüm Ekle/Düzenle</button>
+            <button id="nav-manage-chapters" onclick="switchTab('manage-chapters')">Bölümleri Yönet</button>
             <button id="nav-manage" onclick="switchTab('manage')">Serileri Yönet</button>
         </div>
 
-        <!-- TAB 1: Yeni/Düzenle Seri Ekle -->
+        <!-- TAB 1: Seri Ekle/Düzenle -->
         <div id="tab-series" class="tab-content active">
             <h3 id="formTitle"><i class="fa-solid fa-book"></i> Yeni Seri Bilgileri</h3>
             <div class="form-group">
@@ -173,8 +180,8 @@
             </div>
             <div class="form-group">
                 <label>Seri Özel Link İsmi (Slug / Link URL) *</label>
-                <input type="text" id="seriesSlug" placeholder="Örn: solo-leveling-turkce-oku (Boş bırakırsanız otomatik oluşturulur)">
-                <small style="font-size: 11px; color:#888; margin-top:5px;">Lütfen Türkçe karakter, boşluk ve büyük harf kullanmayın. (Örn: `manga-adi` şeklinde yazın)</small>
+                <input type="text" id="seriesSlug" placeholder="Örn: solo-leveling-turkce-oku">
+                <small style="font-size: 11px; color:#888; margin-top:5px;">Türkçe karakter, boşluk ve büyük harf kullanmayın. (Örn: `manga-adi` şeklinde yazın)</small>
             </div>
             <div class="form-group">
                 <label>Alternatif İsim(ler)</label>
@@ -186,7 +193,7 @@
             </div>
             <div class="form-group">
                 <label>Kapak Resmi URL'si *</label>
-                <input type="text" id="seriesCover" placeholder="https://... veya imgbox linki">
+                <input type="text" id="seriesCover" placeholder="https://...">
             </div>
             <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
                 <div class="form-group">
@@ -232,12 +239,12 @@
             </div>
         </div>
 
-        <!-- TAB 2: Yeni Bölüm Ekle -->
+        <!-- TAB 2: Bölüm Ekle/Düzenle -->
         <div id="tab-chapters" class="tab-content">
-            <h3><i class="fa-solid fa-file-circle-plus"></i> Bölüm Bilgileri</h3>
+            <h3 id="chapterFormTitle"><i class="fa-solid fa-file-circle-plus"></i> Bölüm Bilgileri</h3>
             <div class="form-group">
-                <label>Seri Ara & Seç *</label>
-                <input type="text" id="chapterSeriesSearch" oninput="filterSeriesDropdown()" placeholder="Seri ismini yazarak arayın..." class="search-filter-input">
+                <label>Seri Seçin *</label>
+                <input type="text" id="chapterSeriesSearch" oninput="filterSeriesDropdown('chapterSeriesSearch', 'chapterSeriesSelect')" placeholder="Seri ismini yazarak arayın..." class="search-filter-input">
                 <select id="chapterSeriesSelect">
                     <option value="">Lütfen Bekleyin, Seriler Yükleniyor...</option>
                 </select>
@@ -263,7 +270,7 @@
             <!-- Webtoon Giriş Alanı -->
             <div id="webtoonInputArea" class="form-group">
                 <label>Resim Linkleri veya HTML Embed Kodları</label>
-                <textarea id="webtoonContent" rows="10" placeholder="Imgbox sitesinden aldığınız HTML/Embed kodlarını buraya yapıştırın veya alt alta her satıra bir resim linki koyun."></textarea>
+                <textarea id="webtoonContent" rows="10" placeholder="Imgbox sitelerinden aldığınız HTML kodlarını buraya yapıştırın veya alt alta her satıra bir resim linki koyun."></textarea>
             </div>
 
             <!-- Novel Giriş Alanı -->
@@ -272,10 +279,35 @@
                 <textarea id="novelContent" rows="15" placeholder="Novel bölüm metnini buraya yapıştırın. Paragraflar otomatik algılanacaktır."></textarea>
             </div>
 
-            <button class="btn-submit" onclick="submitChapter()">Bölümü Depoya Commit Et</button>
+            <div style="display: flex; gap: 10px;">
+                <button id="btnSubmitChapter" class="btn-submit" onclick="submitChapter()">Bölümü Depoya Commit Et</button>
+                <button id="btnCancelChapterEdit" class="btn-submit" onclick="cancelChapterEdit()" style="background: #777; display: none;">Bölüm Düzenlemeyi İptal Et</button>
+            </div>
         </div>
 
-        <!-- TAB 3: Serileri Yönet -->
+        <!-- TAB 3: Bölümleri Yönet (Düzenle / Sil) -->
+        <div id="tab-manage-chapters" class="tab-content">
+            <h3><i class="fa-solid fa-file-shield"></i> Bölümleri Yönet</h3>
+            <div class="form-group">
+                <label>1. Seriyi Seçin</label>
+                <input type="text" id="manageChapterSeriesSearch" oninput="filterSeriesDropdown('manageChapterSeriesSearch', 'manageChapterSeriesSelect')" placeholder="Seri ismini yazarak arayın..." class="search-filter-input">
+                <select id="manageChapterSeriesSelect" onchange="loadChaptersForManagement(this.value)">
+                    <option value="">Önce bir seri seçin...</option>
+                </select>
+            </div>
+            <div class="form-group" id="manageChaptersDropdownArea" style="display: none;">
+                <label>2. Düzenlemek veya Silmek İstediğiniz Bölümü Seçin</label>
+                <select id="manageChapterSelect" style="padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; width: 100%;">
+                    <option value="">Bölüm seçin...</option>
+                </select>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn-submit" onclick="startEditChapter()" style="background: var(--secclr);"><i class="fa-solid fa-pen-to-square"></i> Seçilen Bölümü Düzenle</button>
+                    <button class="btn-submit" onclick="deleteChapter()" style="background: #d9534f;"><i class="fa-solid fa-trash"></i> Seçilen Bölümü Tamamen Sil</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: Serileri Yönet -->
         <div id="tab-manage" class="tab-content">
             <h3><i class="fa-solid fa-list"></i> Mevcut Seriler</h3>
             <div id="seriesListContainer">
