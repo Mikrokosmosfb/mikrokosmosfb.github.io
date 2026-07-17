@@ -165,10 +165,48 @@
             .logo a { font-size: 18px; }
             nav a { margin-left: 10px; font-size: 14px; }
         }
+        /* Meteor Efekti */
+.uzay-bg::after {
+    content: "";
+    position: absolute;
+    top: -10%; left: -10%; width: 120%; height: 120%;
+    background-image: 
+        radial-gradient(1px 1px at 10% 10%, #fff, transparent),
+        radial-gradient(1px 1px at 20% 50%, #fff, transparent),
+        radial-gradient(2px 2px at 40% 80%, #fff, transparent),
+        radial-gradient(1px 1px at 90% 30%, #fff, transparent);
+    background-size: 200px 200px;
+    animation: starsRotate 150s linear infinite;
+}
+
+@keyframes starsRotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Kayan Yıldız (Meteor) Animasyonu */
+.meteor {
+    position: fixed;
+    width: 2px; height: 2px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 10px 2px #fff, 0 0 20px 4px var(--mor);
+    opacity: 0;
+    animation: meteorAnim 5s linear infinite;
+}
+
+@keyframes meteorAnim {
+    0% { transform: rotate(-35deg) translateX(0); opacity: 0; }
+    10% { opacity: 1; }
+    30% { transform: rotate(-35deg) translateX(-1000px); opacity: 0; }
+    100% { opacity: 0; }
+}
     </style>
 </head>
 <body>
-
+<div class="meteor" style="top:10%; right:10%; animation-delay: 0s;"></div>
+<div class="meteor" style="top:30%; right:-5%; animation-delay: 2s;"></div>
+<div class="meteor" style="top:50%; right:20%; animation-delay: 4s;"></div>
     <div class="uzay-bg"></div>
 
     <header>
@@ -176,10 +214,12 @@
             <div class="logo">
                 <a href="index.html">MIKROKOSMOS <span>FB</span></a>
             </div>
-            <nav>
-                <a href="index.html">Ana Sayfa</a>
-                <a href="admin.html"><i class="fa-solid fa-lock"></i></a>
-            </nav>
+           <nav>
+    <a href="index.html">ANA SAYFA</a>
+    <a href="seriler.html">TÜM SERİLER</a>
+    <a href="istekler.html">İSTEKLER</a> <!-- İleride yapacağız -->
+    <a href="admin.html"><i class="fa-solid fa-lock"></i> PANEL</a>
+</nav>
         </div>
     </header>
 
