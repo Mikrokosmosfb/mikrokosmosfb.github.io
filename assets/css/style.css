@@ -19,7 +19,6 @@ body {
   padding: 0;
   line-height: 1.4;
   overflow-x: hidden;
-  user-select: none;
 }
 
 /* Dark Mode Ayarı */
@@ -42,204 +41,436 @@ a:hover {
   color: var(--primary-color);
 }
 
-/* Header Tasarımı */
+/* --- BİREBİR GÖRSEL UYUMLU HEADER (Row 1) --- */
 header {
-  background: linear-gradient(to right, var(--keycolor), var(--secclr));
+  background: linear-gradient(90deg, #7b1fa2, #3367D6);
+  padding: 10px 0;
   color: white;
-  padding: 15px 0;
 }
 
-.max-w {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 15px;
-}
-
-.flex {
+.header-container {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
-.aic {
+.header-logo-link img {
+  max-height: 48px;
+  display: block;
+}
+
+/* Yatay Menü Elemanları */
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.header-nav a {
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-weight: 500;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+}
+
+.header-nav a:hover {
+  color: white !important;
+}
+
+/* Diğer Dropdown Açılır Menü */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #17151b;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+  z-index: 999;
+  border-radius: 6px;
+  top: 100%;
+  left: 0;
+  padding: 5px 0;
+}
+
+.dropdown-content a {
+  color: #ccc !important;
+  padding: 8px 15px;
+  display: block;
+  font-size: 13px;
+}
+
+.dropdown-content a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white !important;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/* Hamburger Menü (Responsive için mobil toggle) */
+.menu-toggle-btn {
+  display: none;
+  font-size: 22px;
+  color: white;
+  cursor: pointer;
+}
+
+/* Koyu Mod Toggles (Görselinizdeki gibi) */
+.dark-mode-container {
+  display: flex;
   align-items: center;
 }
 
-.jcsb {
-  justify-content: space-between;
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 38px;
+  height: 20px;
 }
 
-.grid {
-  display: grid;
+.switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 
-/* Menü ve Arama Çubuğu */
-nav ul {
+.slider-round {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.3);
+  transition: .3s;
+  border-radius: 34px;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.slider-round:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+}
+
+input:checked + .slider-round:before {
+  transform: translateX(18px);
+}
+
+/* Arama Kutusu (Pill Görünümü) */
+.search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-container input {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: white;
+  padding: 6px 35px 6px 15px;
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+  width: 180px;
+  transition: width 0.3s ease;
+}
+
+.search-container input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.search-container .search-icon {
+  position: absolute;
+  right: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+}
+
+#resLive {
+  position: absolute;
+  top: 105%;
+  left: 0;
+  width: 100%;
+  background: #17151b;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  z-index: 9999;
+  max-height: 400px;
+  overflow-y: auto;
+  display: none;
+}
+
+#resLive.active {
+  display: block;
+}
+
+.live-search-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.live-search-item img {
+  width: 40px;
+  height: 55px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.live-search-item div {
+  color: white;
+  font-size: 13px;
+}
+
+/* Kütüphane Butonu */
+.kutuphane-btn {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: white;
+  padding: 6px 15px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.kutuphane-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+/* --- ROW 2: IGNIEL HORIZONTAL BUTTONS (Birebir Tasarım) --- */
+.ignielHorizontal {
+  background: linear-gradient(90deg, #7b1fa2, #3367D6);
+  padding: 10px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.ignielHorizontal ul {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
-  gap: 15px;
+  justify-content: center;
+  gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
-nav ul li a {
+.ignielHorizontal ul::-webkit-scrollbar { display: none; }
+
+.ignielHorizontal li a {
+  background-color: #baa8ff;
   color: white;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 14px;
   font-weight: 500;
-  padding: 5px 10px;
-}
-
-/* Webtoon & Manga Kartları */
-.myGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 20px;
-  padding: 15px 0;
-}
-
-.bookItem {
-  background: white;
-  border-radius: var(--border-radius);
-  overflow: hidden;
-  box-shadow: 1px 3px 8px rgba(49, 49, 49, 0.1);
-  transition: transform 0.3s ease;
-  border: 2px solid purple;
-}
-
-.dark-mode .bookItem {
-  background: #222;
-  border-color: #444;
-}
-
-.bookItem:hover {
-  transform: translateY(-5px);
-}
-
-.snippet-thumbnail {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 3/4;
-  overflow: hidden;
-}
-
-.snippet-thumbnail img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.bookItem .data {
-  padding: 10px;
-}
-
-.bookItem .data h2 {
-  font-size: 14px;
-  margin: 5px 0;
-  font-weight: 600;
-}
-
-/* Durum ve Tip Rozetleri */
-.po {
-  position: absolute;
-  bottom: 5px;
-  right: 5px;
-  padding: 2px 6px;
-  font-size: 10px;
-  border-radius: 4px;
-  color: white;
-  font-weight: bold;
-}
-
-.manga { background: #ff0038; }
-.manhua { background: #007fff; }
-.manhwa { background: #006b3c; }
-.novel { background: #6c238e; }
-
-/* Dikey Webtoon Okuyucu Alanı */
-.webtoon-area {
+  text-decoration: none;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  width: 100%;
-  background-color: #000;
+  gap: 8px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  white-space: nowrap;
+  transition: all 0.3s ease;
 }
 
-.webtoon-area img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 0;
+.ignielHorizontal li a:hover {
+  background-color: #8976d6;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 10px rgba(0,0,0,0.15);
 }
 
-/* Novel Okuyucu Alanı */
-.novel-reader {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 30px 20px;
-  background-color: #fdfefe;
-  color: #2c3e50;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-  font-size: 18px;
-  line-height: 1.8;
-  text-align: justify;
+/* Responsive Düzenlemeleri (Mobil ve Tablet Uyumlu) */
+@media (max-width: 1024px) {
+  .menu-toggle-btn {
+    display: block;
+  }
+  .header-nav {
+    display: none; /* Mobilde hamburger tıklandığında açılacak */
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    background: #17151b;
+    padding: 15px;
+    border-radius: 8px;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    z-index: 1000;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+  }
+  .header-nav.active {
+    display: flex;
+  }
+  .ignielHorizontal ul {
+    justify-content: flex-start;
+    padding: 0 15px;
+  }
 }
 
-.dark-mode .novel-reader {
-  background-color: #1e1e1e;
-  color: #dddddd;
+@media (max-width: 480px) {
+  .search-container input {
+    width: 130px;
+  }
+  .search-container input:focus {
+    width: 150px;
+  }
 }
 
-/* Admin Giriş ve Paneli Arayüzü */
-.admin-container {
-  max-width: 900px;
-  margin: 40px auto;
-  padding: 20px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+/* Diğer Genel Şablon Yapıları */
+.hero-slider {
+  background: #17151b;
+  border-radius: 18px;
+  overflow: hidden;
+  height: 350px;
+  position: relative;
+  margin-top: 20px;
+  margin-bottom: 30px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
 }
 
-.dark-mode .admin-container {
-  background: #222;
+.slider-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(8px) brightness(35%);
+  transform: scale(1.1);
 }
 
-.form-group {
-  margin-bottom: 15px;
+.slider-content {
+  position: relative;
+  z-index: 2;
   display: flex;
-  flex-direction: column;
-}
-
-.form-group label {
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-.form-group input, .form-group select, .form-group textarea {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
-.btn-submit {
-  background: var(--primary-color);
+  padding: 30px;
+  gap: 30px;
+  height: 100%;
+  align-items: center;
   color: white;
-  border: none;
-  padding: 12px 20px;
+  box-sizing: border-box;
+}
+
+.slider-img {
+  width: 150px;
+  height: 210px;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 25px;
+}
+
+@media (max-width: 900px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.myGridv2 {
+  display: flex;
+  gap: 15px;
+  overflow-x: auto;
+  padding: 10px 5px;
+  scrollbar-width: none;
+}
+
+.myGridv2::-webkit-scrollbar { display: none; }
+
+.myGridv2 .bookItem {
+  flex: 0 0 145px;
+  max-width: 145px;
+}
+
+.subItem {
+  list-style: none;
+  padding: 0;
+  margin: 5px 0 0 0;
+}
+
+.subItem li {
+  font-size: 11px;
+  background: rgba(123, 31, 162, 0.08);
+  padding: 4px 8px;
   border-radius: 6px;
-  font-weight: bold;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.dark-mode .subItem li {
+  background: rgba(255,255,255,0.05);
+}
+
+.tab-menu {
+  display: flex;
+  background: #eee;
+  padding: 5px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.dark-mode .tab-menu {
+  background: #333;
+}
+
+.tab-menu span {
+  flex: 1;
+  text-align: center;
+  padding: 8px;
   cursor: pointer;
+  font-weight: bold;
+  font-size: 12px;
+  border-radius: 6px;
   transition: 0.2s;
 }
 
-.btn-submit:hover {
-  background: var(--secclr);
+.tab-menu span.active {
+  background: var(--primary-color);
+  color: white;
 }
 
-/* --- ORİJİNAL BLOGGER TIKLAMA DAİRE EFEKTİ (Rippleff) --- */
+.tab-pane {
+  display: none;
+}
+
+.tab-pane.active {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
 .rippleff {
   width: 60px;
   height: 60px;
   border-radius: 99em;
-  border: 3px solid #7b1fa2; /* Sizin mor renginiz */
+  border: 3px solid #7b1fa2;
   position: fixed;
   pointer-events: none;
   z-index: 99999;
@@ -247,10 +478,12 @@ nav ul li a {
   opacity: 0;
   display: none;
 }
+
 .rippleff.active {
   display: block;
   animation: rippleffAnim 0.4s ease-out forwards;
 }
+
 @keyframes rippleffAnim {
   from {
     transform: scale(0.2);
@@ -262,7 +495,6 @@ nav ul li a {
   }
 }
 
-/* Okuma Geçmişi Listesi Stili */
 .history-item {
   display: flex;
   align-items: center;
@@ -270,9 +502,11 @@ nav ul li a {
   padding: 10px;
   border-bottom: 1px solid #f0f0f0;
 }
+
 .dark-mode .history-item {
   border-bottom-color: #333;
 }
+
 .history-item i {
   color: var(--primary-color);
   font-size: 14px;
