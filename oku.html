@@ -4,64 +4,57 @@
     <meta charset="UTF-8">
     <title>Mikrokosmos Okuyucu</title>
     <link rel="stylesheet" href="assets/css/style.css">
-    <style>
-        /* Okuyucuya Özel Orijinal Kodlar */
-        .check-box img { width: 100%; display: block; margin: 0 auto; }
-        .Novel { max-width: 800px; margin: 0 auto; background: white; color: black; padding: 30px; line-height: 1.8; }
-        .dark-mode .Novel { background: #222; color: #ccc; }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
-<body class="pv"> <!-- XML'deki post view class'ı -->
+<body class="pv dark-mode">
     <div id="Atprogressbar" class="Atprogress-bar"></div>
 
     <div class="max-w mla mra pen c-999 mt-35 full oh">
-        <h1 id="reader-title" class="m-0 fs-25 tac c-ddd fs-20"></h1>
-        
-        <!-- Orijinal nPL Dropdown (Bölüm Seçici) -->
-        <div class="nPL-show" id="nPL"></div>
+        <!-- Orijinal Dropdown Üst -->
+        <div class="nPL-show"></div>
 
+        <!-- İçerik Alanı -->
         <div id="reader-content" class="check-box">
-            <!-- Buraya resimler veya metin gelecek -->
+             <!-- Buraya Webtoon resimleri veya Novel metni düşecek -->
         </div>
 
-        <div class="nPL-show" id="nPL2"></div>
+        <!-- Orijinal Dropdown Alt -->
+        <div class="nPL-show"></div>
+        
+        <!-- Blogger'daki Novel Ayarları (Opsiyonel eklenebilir) -->
     </div>
 
+    <script src="assets/js/core.js"></script>
     <script>
         const params = new URLSearchParams(window.location.search);
         const seri = params.get('seri');
         const no = parseInt(params.get('bolum'));
 
-        async function loadReader() {
+        async function load() {
             const res = await fetch(`data/chapters/${seri}.json`);
             const chapters = await res.json();
             const current = chapters.find(c => c.no === no);
-            
-            document.getElementById('reader-title').innerText = current.title;
+
             const out = document.getElementById('reader-content');
 
-            // XML'deki mantık: Manhwa ise img etiketlerini ayıkla, Novel ise metin bas
-            if(current.content.includes('<img')) {
-                // Manhwa Modu (Imgbox HTML temizleme)
-                const div = document.createElement('div');
-                div.innerHTML = current.content;
-                const imgs = div.querySelectorAll('img');
-                out.innerHTML = Array.from(imgs).map(i => `<img src="${i.src}" loading="lazy">`).join('');
-            } else {
-                // Novel Modu
-                out.classList.add('Novel');
-                out.innerHTML = current.content.replace(/\n/g, '<br>');
-            }
-        }
-        loadReader();
+            // Geçmişe Kaydet (XML Mantığı)
+            HISTORY.push(seri + "_" + no, { storyTitle: current.title, storyLink: window.location.href });
 
-        // Orijinal Progress Bar Mantığı
-        window.onscroll = function() {
-            let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-            let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            let scrolled = (winScroll / height) * 100;
-            document.getElementById("Atprogressbar").style.width = scrolled + "%";
-        };
+            // İçerik Tipi Kontrolü
+            if (current.content.includes('<img') || current.content.includes('<a')) {
+                // Webtoon: HTML'i temizle resimleri dikey diz
+                out.innerHTML = cleanWebtoonContent(current.content);
+            } else {
+                // Novel: Metin olarak bas
+                out.innerHTML = `<div class="novel-container Novel" style="padding:20px; line-height:2; font-size:18px;">
+                    ${current.content.replace(/\n/g, '<br>')}
+                </div>`;
+            }
+
+            // Navigasyonu çalıştır
+            nPLPro.render(seri, no);
+        }
+        load();
     </script>
 </body>
 </html>
