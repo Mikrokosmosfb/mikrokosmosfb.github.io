@@ -1,0 +1,511 @@
+<!-- okuyucu.html -->
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Okuma Paneli - Mikrokosmos</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* Okuyucu Sayfasına Özel Tasarımlar */
+        .reader-nav-bar {
+            background: #17151b;
+            padding: 10px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border-bottom: 2px solid var(--primary-color);
+        }
+        .reader-container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 10px;
+        }
+        /* Navigasyon Butonları ve Seçici */
+        .nav-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            margin-top: 10px;
+        }
+        .nav-controls a, .nav-controls button {
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .nav-controls a:hover, .nav-controls button:hover {
+            background: var(--secclr);
+        }
+        .nav-controls a.disabled {
+            background: #555;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        #chapterSelect {
+            background: #333;
+            color: #ccc;
+            border: 1px solid #444;
+            padding: 10px;
+            border-radius: 30px;
+            font-size: 13px;
+            outline: none;
+            width: 100%;
+            max-width: 250px;
+            text-align: center;
+        }
+        /* Webtoon Görünümü */
+        .webtoon-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            padding: 10px 0;
+        }
+        .webtoon-area img {
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+        /* Novel Okuyucu Özelleştirme Paneli */
+        .novel-settings-panel {
+            background: #7812a3;
+            color: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none; /* JS Novel algılarsa gösterecek */
+        }
+        .novel-settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .novel-settings-grid div {
+            display: flex;
+            flex-direction: column;
+        }
+        .novel-settings-grid select, .novel-settings-grid button {
+            padding: 6px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            background: white;
+            color: #7812a3;
+            font-weight: bold;
+            outline: none;
+            cursor: pointer;
+        }
+        .novel-content-box {
+            background: #fff;
+            color: #2c3e50;
+            padding: 30px 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            font-size: 18px;
+            line-height: 1.8;
+            text-align: justify;
+            min-height: 400px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+        .novel-content-box p {
+            margin-bottom: 1.5em;
+        }
+        /* Otomatik Kaydırma Durdurma Butonu */
+        #stopScrollBtn {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        /* +18 Uyarı Pop-up */
+        .resWarn {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 99999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .resFile {
+            max-width: 500px;
+            background: #1e1325;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid var(--primary-color);
+            color: white;
+        }
+        .resBtn {
+            padding: 10px 25px;
+            border-radius: 30px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+        }
+        #resEn { background: var(--primary-color); color: white; }
+        #resEx { background: #555; color: white; }
+    </style>
+</head>
+<body id="modeSwitch">
+    <script>
+        if (localStorage.getItem('mode') === 'darkmode') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+
+    <!-- +18 Yaş Onay Pop-up -->
+    <div id="ageWarning" class="resWarn">
+        <div class="resFile">
+            <h2 style="color: #ff6464; margin-top:0;"><i class="fa-solid fa-circle-exclamation"></i> BÖLÜM YAŞ SINIRI UYARISI</h2>
+            <p style="line-height: 1.6; font-size: 15px;">Okumakta olduğunuz bu bölüm yetişkin içerikli sahneler içermektedir. 18 yaşından büyük müsünüz?</p>
+            <button id="resEn" class="resBtn" onclick="acceptAgeWarning()">Evet, Devam Et</button>
+            <button id="resEx" class="resBtn" onclick="rejectAgeWarning()">Hayır, Seri Sayfasına Dön</button>
+        </div>
+    </div>
+
+    <!-- Üst Kontrol Barı -->
+    <div class="reader-nav-bar">
+        <div class="max-w flex jcsb aic">
+            <a href="index.html" class="header-logo" style="font-size: 18px;"><i class="fa-solid fa-space-awesome"></i> MİKROKOSMOS</a>
+            <a id="backToSeriesLink" href="#" style="color: white; font-weight: bold; font-size: 13px;"><i class="fa-solid fa-arrow-left"></i> Seri Sayfasına Dön</a>
+        </div>
+    </div>
+
+    <!-- Okuyucu Ana Konteyneri -->
+    <div class="reader-container">
+        <!-- Başlık Bölümü -->
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h1 id="chapterTitle" style="font-size: 24px; margin-bottom: 5px; color: var(--primary-color);">Yükleniyor...</h1>
+            <p id="seriesSubTitle" style="margin: 0; font-size: 14px; opacity: 0.7;">...</p>
+        </div>
+
+        <!-- Üst Navigasyon Butonları -->
+        <div class="nav-controls">
+            <a id="prevBtnTop" href="#" class="disabled"><i class="fa-solid fa-chevron-left"></i> Önceki</a>
+            <select id="chapterSelect" onchange="jumpToChapter(this.value)">
+                <option value="">Bölümler Yükleniyor...</option>
+            </select>
+            <a id="nextBtnTop" href="#" class="disabled">Sonraki <i class="fa-solid fa-chevron-right"></i></a>
+        </div>
+
+        <!-- NOVEL AYARLAR PANELİ (Yalnızca Novel ise Görünür) -->
+        <div id="novelSettings" class="novel-settings-panel">
+            <div style="font-weight: bold; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 5px; margin-bottom: 10px;">
+                <i class="fa-solid fa-sliders"></i> Novel Okuma Ayarları
+            </div>
+            <div class="novel-settings-grid">
+                <div>
+                    <label style="font-size: 11px; margin-bottom: 3px;">Arka Plan</label>
+                    <select id="novelBgSelect" onchange="changeNovelStyle('bg', this.value)">
+                        <option value="#ffffff">Beyaz</option>
+                        <option value="#f4efe9">Krem</option>
+                        <option value="#ececec">Açık Gri</option>
+                        <option value="#1a1a1a">Gece Modu</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 11px; margin-bottom: 3px;">Yazı Tipi</label>
+                    <select id="novelFontSelect" onchange="changeNovelStyle('font', this.value)">
+                        <option value="Arial">Arial</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Courier New">Courier New</option>
+                        <option value="Montserrat">Montserrat</option>
+                        <option value="'Open Sans'">Open Sans</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 11px; margin-bottom: 3px;">Yazı Boyutu</label>
+                    <select id="novelSizeSelect" onchange="changeNovelStyle('size', this.value)">
+                        <option value="16px">16px</option>
+                        <option value="18px" selected>18px</option>
+                        <option value="20px">20px</option>
+                        <option value="22px">22px</option>
+                        <option value="24px">24px</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 11px; margin-bottom: 3px;">Satır Aralığı</label>
+                    <select id="novelLineHeightSelect" onchange="changeNovelStyle('lineHeight', this.value)">
+                        <option value="1.5">Dar</option>
+                        <option value="1.8" selected>Normal</option>
+                        <option value="2.2">Geniş</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 11px; margin-bottom: 3px;">Eylemler</label>
+                    <button type="button" onclick="toggleAutoScroll()"><i class="fa-solid fa-play"></i> Oto-Kaydır</button>
+                </div>
+            </div>
+            <div id="readingTime" style="font-size: 12px; opacity: 0.8; text-align: center; margin-top: 15px;">
+                Tahmini Okuma Süresi: <span id="readingMinutes">...</span> dakika
+            </div>
+        </div>
+
+        <!-- İÇERİK ALANI -->
+        <div id="readerContentArea">
+            <!-- JS Tarafından Webtoon Resimleri Veya Novel Paragrafları Buraya Basılacak -->
+            <div style="text-align: center; padding: 100px 0;">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size: 35px; color: var(--primary-color);"></i>
+                <p>İçerik yükleniyor, lütfen bekleyin...</p>
+            </div>
+        </div>
+
+        <!-- Alt Navigasyon Butonları -->
+        <div class="nav-controls" style="margin-top: 30px;">
+            <a id="prevBtnBottom" href="#" class="disabled"><i class="fa-solid fa-chevron-left"></i> Önceki Bölüm</a>
+            <a id="nextBtnBottom" href="#" class="disabled">Sonraki Bölüm <i class="fa-solid fa-chevron-right"></i></a>
+        </div>
+    </div>
+
+    <!-- Otomatik Kaydırmayı Durdurma Butonu -->
+    <button id="stopScrollBtn" onclick="stopAutoScroll()"><i class="fa-solid fa-pause"></i> Kaydırmayı Durdur</button>
+
+    <script>
+        let seriesId = "";
+        let chapterId = "";
+        let currentChapterData = null;
+        let allChapters = [];
+        let scrollInterval = null;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            seriesId = urlParams.get("series");
+            chapterId = urlParams.get("chapter");
+
+            if (!seriesId || !chapterId) {
+                alert("Hata: Bölüm veya Seri kimliği eksik.");
+                window.location.href = "index.html";
+                return;
+            }
+
+            document.getElementById("backToSeriesLink").href = `series.html?id=${seriesId}`;
+            fetchChapterContent();
+        });
+
+        // 1. Bölüm İçeriğini Çek
+        function fetchChapterContent() {
+            const path = `data/chapters/${seriesId}/${chapterId}.json`;
+            fetch(path)
+                .then(res => {
+                    if (!res.ok) throw new Error("Bölüm içeriği bulunamadı.");
+                    return res.json();
+                })
+                .then(data => {
+                    currentChapterData = data;
+                    checkAgeRating();
+                    renderChapter();
+                    fetchSeriesChapters(); // Navigasyonu hesaplamak için serideki tüm bölümleri çek
+                })
+                .catch(err => {
+                    console.error("Bölüm yüklenirken hata:", err);
+                    document.getElementById("readerContentArea").innerHTML = `<p style="color:red; text-align:center; padding:50px;">Bölüm içeriği yüklenemedi. Admin panelinden içeriğin doğru eklendiğini onaylayın.</p>`;
+                });
+        }
+
+        // Yaş Sınırı Onay Sistemi
+        function checkAgeRating() {
+            if (currentChapterData.is18) {
+                if (sessionStorage.getItem("age_verified_" + seriesId) !== "true") {
+                    document.getElementById("ageWarning").style.display = "flex";
+                }
+            }
+        }
+
+        function acceptAgeWarning() {
+            sessionStorage.setItem("age_verified_" + seriesId, "true");
+            document.getElementById("ageWarning").style.display = "none";
+        }
+
+        function rejectAgeWarning() {
+            window.location.href = `series.html?id=${seriesId}`;
+        }
+
+        // 2. Bölümü Arayüze Yazdır
+        function renderChapter() {
+            document.getElementById("chapterTitle").innerText = currentChapterData.title;
+            document.title = `${currentChapterData.title} Türkçe Oku - Mikrokosmos`;
+
+            const area = document.getElementById("readerContentArea");
+
+            if (currentChapterData.type === "webtoon") {
+                // Webtoon Resimlerini Yazdır
+                let webtoonHtml = `<div class="webtoon-area">`;
+                currentChapterData.content.forEach((imgUrl, index) => {
+                    webtoonHtml += `<img src="${imgUrl}" alt="Sayfa ${index + 1}" loading="lazy">`;
+                });
+                webtoonHtml += `</div>`;
+                area.innerHTML = webtoonHtml;
+            } else {
+                // Novel Metnini Yazdır
+                document.getElementById("novelSettings").style.display = "block";
+                
+                // Paragraflara bölerek şık bir kutu içinde yazdıralım
+                const paragraphs = currentChapterData.content.split("\n").filter(p => p.trim() !== "");
+                let novelHtml = `<div id="novelTextBox" class="novel-content-box">`;
+                paragraphs.forEach(p => {
+                    novelHtml += `<p>${p}</p>`;
+                });
+                novelHtml += `</div>`;
+                area.innerHTML = novelHtml;
+
+                // Süre hesapla
+                calculateReadingTime(currentChapterData.content);
+                // Kaydedilmiş stilleri uygula
+                applySavedNovelStyles();
+            }
+        }
+
+        // 3. Bölüm Navigasyonunu Hesapla (Önceki - Sonraki Butonları)
+        function fetchSeriesChapters() {
+            fetch("data/series.json")
+                .then(res => res.json())
+                .then(data => {
+                    const series = data.find(s => s.id === seriesId);
+                    if (series) {
+                        document.getElementById("seriesSubTitle").innerText = series.title;
+                        allChapters = series.chapters || [];
+                        buildNavigation();
+                    }
+                });
+        }
+
+        function buildNavigation() {
+            const dropdown = document.getElementById("chapterSelect");
+            dropdown.innerHTML = "";
+
+            // Dropdown'u doldur
+            allChapters.forEach(ch => {
+                const selected = ch.id === chapterId ? "selected" : "";
+                dropdown.innerHTML += `<option value="${ch.id}" ${selected}>${ch.title}</option>`;
+            });
+
+            // İndisleri bul
+            const currentIndex = allChapters.findIndex(ch => ch.id === chapterId);
+
+            const prevBtnTop = document.getElementById("prevBtnTop");
+            const prevBtnBottom = document.getElementById("prevBtnBottom");
+            const nextBtnTop = document.getElementById("nextBtnTop");
+            const nextBtnBottom = document.getElementById("nextBtnBottom");
+
+            // Önceki Bölüm Var Mı?
+            if (currentIndex > 0) {
+                const prevChapter = allChapters[currentIndex - 1];
+                const prevUrl = `okuyucu.html?series=${seriesId}&chapter=${prevChapter.id}`;
+                prevBtnTop.href = prevUrl; prevBtnTop.classList.remove("disabled");
+                prevBtnBottom.href = prevUrl; prevBtnBottom.classList.remove("disabled");
+            } else {
+                prevBtnTop.classList.add("disabled");
+                prevBtnBottom.classList.add("disabled");
+            }
+
+            // Sonraki Bölüm Var Mı?
+            if (currentIndex < allChapters.length - 1 && currentIndex !== -1) {
+                const nextChapter = allChapters[currentIndex + 1];
+                const nextUrl = `okuyucu.html?series=${seriesId}&chapter=${nextChapter.id}`;
+                nextBtnTop.href = nextUrl; nextBtnTop.classList.remove("disabled");
+                nextBtnBottom.href = nextUrl; nextBtnBottom.classList.remove("disabled");
+            } else {
+                nextBtnTop.classList.add("disabled");
+                nextBtnBottom.classList.add("disabled");
+            }
+        }
+
+        function jumpToChapter(val) {
+            if (val) {
+                window.location.href = `okuyucu.html?series=${seriesId}&chapter=${val}`;
+            }
+        }
+
+        // --- NOVEL ÖZEL AYARLARI ---
+        function calculateReadingTime(text) {
+            const words = text.trim().split(/\s+/).length;
+            const minutes = Math.max(1, Math.round(words / 220)); // Ortalama dakikada 220 kelime
+            document.getElementById("readingMinutes").innerText = minutes;
+        }
+
+        function changeNovelStyle(type, value) {
+            const box = document.getElementById("novelTextBox");
+            if (!box) return;
+
+            if (type === 'bg') {
+                box.style.backgroundColor = value;
+                if (value === "#1a1a1a") {
+                    box.style.color = "#dddddd";
+                } else if (value === "#f4efe9") {
+                    box.style.color = "#3d2a1b";
+                } else {
+                    box.style.color = "#2c3e50";
+                }
+            }
+            if (type === 'font') box.style.fontFamily = value;
+            if (type === 'size') box.style.fontSize = value;
+            if (type === 'lineHeight') box.style.lineHeight = value;
+
+            // Tercihleri yerel hafızaya kaydet
+            localStorage.setItem(`novel_style_${type}`, value);
+        }
+
+        function applySavedNovelStyles() {
+            const bg = localStorage.getItem("novel_style_bg");
+            const font = localStorage.getItem("novel_style_font");
+            const size = localStorage.getItem("novel_style_size");
+            const lineHeight = localStorage.getItem("novel_style_lineHeight");
+
+            if (bg) { changeNovelStyle('bg', bg); document.getElementById("novelBgSelect").value = bg; }
+            if (font) { changeNovelStyle('font', font); document.getElementById("novelFontSelect").value = font; }
+            if (size) { changeNovelStyle('size', size); document.getElementById("novelSizeSelect").value = size; }
+            if (lineHeight) { changeNovelStyle('lineHeight', lineHeight); document.getElementById("novelLineHeightSelect").value = lineHeight; }
+        }
+
+        // Otomatik Sayfa Kaydırma (Auto Scroll) Sürgüsü
+        function toggleAutoScroll() {
+            const stopBtn = document.getElementById("stopScrollBtn");
+            if (scrollInterval) {
+                stopAutoScroll();
+            } else {
+                scrollInterval = setInterval(() => {
+                    window.scrollBy({ top: 1, behavior: "smooth" });
+                }, 45); // Kaydırma hızı (milisaniye cinsinden)
+                stopBtn.style.display = "block";
+            }
+        }
+
+        function stopAutoScroll() {
+            if (scrollInterval) {
+                clearInterval(scrollInterval);
+                scrollInterval = null;
+            }
+            document.getElementById("stopScrollBtn").style.display = "none";
+        }
+    </script>
+</body>
+</html>
