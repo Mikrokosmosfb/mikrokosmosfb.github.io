@@ -148,7 +148,7 @@
     <div id="ageWarning" class="resWarn">
         <div class="resFile">
             <h2 style="color: #ff6464; margin-top:0;"><i class="fa-solid fa-circle-exclamation"></i> YAŞ SINIRI UYARISI</h2>
-            <p style="line-height: 1.6; font-size: 15px;">Bu seri şiddet, kan, psikolojik etki veya cinsel sahneler içermektedir. 18 yaşından küçüklerin okuması önerilmez.</p>
+            <p style="line-height: 1.6; font-size: 15px;">Bu seri şiddet, kan, psikolojik etki veya cinsel sahneler içermektedir. 18 yaşından büyük okuyucuların okuması önerilir.</p>
             <p style="font-weight: bold; margin-bottom: 25px;">Devam etmek istiyor musunuz?</p>
             <button id="resEn" class="resBtn" onclick="acceptAgeWarning()">Evet, 18 Yaşından Büyüğüm</button>
             <button id="resEx" class="resBtn" onclick="rejectAgeWarning()">Hayır, Ana Sayfaya Dön</button>
@@ -171,7 +171,7 @@
 
     <!-- Blur Efektli Arka Plan Resmi -->
     <div class="bg-photo-container">
-        <div class="hero-background" id="heroBg" style="background-image: url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh_placeholder/s600/default.png');"></div>
+        <div class="hero-background" id="heroBg" style="background-image: url('assets/images/default.png');"></div>
     </div>
 
     <!-- Seri Bilgileri Grid Alanı -->
@@ -235,14 +235,14 @@
     <!-- Seri Detay Sayfası JS Motoru -->
     <script>
         let currentSeries = null;
-        let isNewestFirst = true; // Varsayılan sıralama: Yeniden eskiye
+        let isNewestFirst = true;
 
         document.addEventListener("DOMContentLoaded", () => {
             const urlParams = new URLSearchParams(window.location.search);
             const seriesId = urlParams.get("id");
 
             if (!seriesId) {
-                alert("Hata: Seri kimliği (ID) bulunamadı.");
+                alert("Hata: Seri kimliği bulunamadı.");
                 window.location.href = "index.html";
                 return;
             }
@@ -250,9 +250,8 @@
             fetchSeriesDetails(seriesId);
         });
 
-        // Verileri JSON dosyasından çek
         function fetchSeriesDetails(seriesId) {
-            fetch("data/series.json")
+            fetch("data/series.json?t=" + new Date().getTime())
                 .then(res => res.json())
                 .then(data => {
                     currentSeries = data.find(s => s.id === seriesId);
@@ -271,10 +270,8 @@
                 });
         }
 
-        // Yaş sınırı kontrolü (+18 ise pop-up açar)
         function checkAgeRating() {
             if (currentSeries.is18) {
-                // Eğer daha önce onay vermediyse pop-up göster
                 if (sessionStorage.getItem("age_verified_" + currentSeries.id) !== "true") {
                     document.getElementById("ageWarning").style.display = "flex";
                 }
@@ -290,7 +287,6 @@
             window.location.href = "index.html";
         }
 
-        // Seri verilerini arayüze yerleştirme
         function renderSeriesDetails() {
             document.getElementById("heroBg").style.backgroundImage = `url('${currentSeries.cover}')`;
             document.getElementById("seriesCover").src = currentSeries.cover;
@@ -302,13 +298,11 @@
             document.getElementById("seriesDescription").innerText = currentSeries.description;
             document.getElementById("seriesGenres").innerText = currentSeries.genres.join(", ") || "Belirtilmemiş";
 
-            // Başlığı sayfa sekmesine yazdır
             document.title = `${currentSeries.title} Türkçe Oku - Mikrokosmos`;
 
             renderChapters();
         }
 
-        // Bölüm Listesini Oluşturma
         function renderChapters() {
             const listContainer = document.getElementById("chapterList");
             if (!listContainer) return;
@@ -320,25 +314,37 @@
                 return;
             }
 
-            // Sıralamayı uygula
             if (isNewestFirst) {
-                chapters.reverse(); // En son eklenen en üstte
+                chapters.reverse();
             }
+
+            const readHistory = JSON.parse(localStorage.getItem("mikro_read_history_" + currentSeries.id) || "[]");
 
             listContainer.innerHTML = "";
             chapters.forEach(ch => {
                 const is18Badge = ch.is18 ? `<span style="background:#ff6464; color:white; font-size:10px; padding:2px 6px; border-radius:4px; margin-left:10px; font-weight:bold;">+18</span>` : "";
                 
+                const isRead = readHistory.includes(ch.id);
+                const readBadge = isRead ? `<span style="color:#2ecc71; margin-right:8px; font-weight:bold;"><i class="fa-solid fa-circle-check"></i></span>` : "";
+
                 listContainer.innerHTML += `
                     <div class="chapter-item" data-title="${ch.title.toLowerCase()}">
-                        <a href="okuyucu.html?series=${currentSeries.id}&chapter=${ch.id}">${ch.title} ${is18Badge}</a>
+                        <a href="okuyucu.html?series=${currentSeries.id}&chapter=${ch.id}" onclick="markAsRead('${ch.id}')">${readBadge}${ch.title} ${is18Badge}</a>
                         <span style="font-size:12px; opacity:0.6;">${ch.date}</span>
                     </div>
                 `;
             });
         }
 
-        // Bölüm Listesi Arama Filtresi
+        function markAsRead(chId) {
+            if (!currentSeries) return;
+            let readHistory = JSON.parse(localStorage.getItem("mikro_read_history_" + currentSeries.id) || "[]");
+            if (!readHistory.includes(chId)) {
+                readHistory.push(chId);
+                localStorage.setItem("mikro_read_history_" + currentSeries.id, JSON.stringify(readHistory));
+            }
+        }
+
         function filterChapters() {
             const query = document.getElementById("chapterSearchInput").value.trim().toLowerCase();
             const items = document.querySelectorAll(".chapter-item");
@@ -353,13 +359,11 @@
             });
         }
 
-        // Sıralamayı Değiştirme Butonu (Tersine Çevir)
         function toggleSortOrder() {
             isNewestFirst = !isNewestFirst;
             renderChapters();
         }
 
-        // --- KÜTÜPHANE (BOOKMARK) SİSTEMİ ---
         function getBookmarks() {
             return JSON.parse(localStorage.getItem("mikro_bookmarks") || "[]");
         }
@@ -384,11 +388,9 @@
             const index = bookmarks.findIndex(b => b.id === currentSeries.id);
 
             if (index > -1) {
-                // Zaten ekliyse çıkar
                 bookmarks.splice(index, 1);
                 alert("Seri kütüphanenizden çıkarıldı.");
             } else {
-                // Ekli değilse ekle
                 bookmarks.push({
                     id: currentSeries.id,
                     title: currentSeries.title,
