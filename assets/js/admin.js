@@ -3,6 +3,7 @@
 // Global Değişkenler
 let gitConfig = {};
 let allSeries = [];
+let editingSeriesId = null; // Düzenleme modunu takip etmek için
 
 // Sayfa Yüklendiğinde
 document.addEventListener("DOMContentLoaded", () => {
@@ -42,7 +43,6 @@ function saveConfig() {
         return;
     }
 
-    // Basit bir API testi ile doğrulama yapalım
     const testUrl = `https://api.github.com/repos/${user}/${repo}`;
     fetch(testUrl, {
         headers: { "Authorization": `token ${token}` }
@@ -107,7 +107,7 @@ function b64_to_utf8(str) {
     return decodeURIComponent(escape(atob(str)));
 }
 
-// ID (Slug) Üretici (Türkçe karakterleri temizler)
+// ID (Slug) Üretici (Türkçe karakterleri ve boşlukları temizler)
 function generateSlug(text) {
     return text.toString().toLowerCase().trim()
         .replace(/\s+/g, '-')           // Boşlukları - yap
@@ -125,7 +125,7 @@ function generateSlug(text) {
 
 // Depodan Dosya Getir
 async function getGithubFile(path) {
-    const url = `https://api.github.com/repos/${gitConfig.user}/${gitConfig.repo}/contents/${path}?ref=${gitConfig.branch}`;
+    const url = `https://api.github.com/repos/${gitConfig.user}/${gitConfig.repo}/contents/${path}?ref=${gitConfig.branch}&t=` + new Date().getTime();
     const response = await fetch(url, {
         headers: { "Authorization": `token ${gitConfig.token}` }
     });
@@ -185,14 +185,8 @@ async function fetchSeriesList() {
 
 // Arayüzleri Seri Listesiyle Güncelle
 function renderSeriesUI() {
-    // 1. Bölüm Ekleme sayfasındaki select kutusunu doldur
-    const select = document.getElementById("chapterSeriesSelect");
-    if (select) {
-        select.innerHTML = '<option value="">Lütfen bir seri seçin...</option>';
-        allSeries.forEach(s => {
-            select.innerHTML += `<option value="${s.id}">${s.title}</option>`;
-        });
-    }
+    // 1. Bölüm Ekleme sayfasındaki select kutusunu sıfırla ve doldur
+    filterSeriesDropdown();
 
     // 2. Yönetim sekmesindeki listeyi doldur
     const listContainer = document.getElementById("seriesListContainer");
@@ -206,16 +200,90 @@ function renderSeriesUI() {
             listContainer.innerHTML += `
                 <div class="series-list-item">
                     <span><strong>${s.title}</strong> (${s.type} - ${s.status})</span>
-                    <button onclick="deleteSeries('${s.id}')"><i class="fa-solid fa-trash"></i> Sil</button>
+                    <div class="actions">
+                        <button class="btn-edit" onclick="editSeries('${s.id}')"><i class="fa-solid fa-pen-to-square"></i> Düzenle</button>
+                        <button class="btn-del" onclick="deleteSeries('${s.id}')"><i class="fa-solid fa-trash"></i> Sil</button>
+                    </div>
                 </div>
             `;
         });
     }
 }
 
-// Yeni Seri Kaydet (Submit)
+// Hızlı Seri Arama & Seçim Dropdown Filtresi
+function filterSeriesDropdown() {
+    const query = document.getElementById("chapterSeriesSearch").value.trim().toLowerCase();
+    const select = document.getElementById("chapterSeriesSelect");
+    if (!select) return;
+
+    select.innerHTML = '<option value="">Lütfen bir seri seçin...</option>';
+    allSeries.forEach(s => {
+        // Eğer arama kutusu boşsa veya yazılan kelime seri adı/slug adında geçiyorsa listele
+        if (query === "" || s.title.toLowerCase().includes(query) || s.id.toLowerCase().includes(query)) {
+            select.innerHTML += `<option value="${s.id}">${s.title} (${s.type})</option>`;
+        }
+    });
+}
+
+// Seri Düzenleme Modunu Aç
+function editSeries(id) {
+    const series = allSeries.find(s => s.id === id);
+    if (!series) return;
+
+    editingSeriesId = id;
+
+    // Formu serinin mevcut bilgileriyle dolduralım
+    document.getElementById("seriesTitle").value = series.title;
+    document.getElementById("seriesSlug").value = series.id;
+    document.getElementById("seriesAltTitle").value = series.altTitle || "";
+    document.getElementById("seriesDescription").value = series.description;
+    document.getElementById("seriesCover").value = series.cover;
+    document.getElementById("seriesStatus").value = series.status;
+    document.getElementById("seriesType").value = series.type;
+    document.getElementById("seriesGenres").value = (series.genres || []).join(", ");
+    document.getElementById("seriesScore").value = series.score;
+    document.getElementById("seriesIs18").checked = series.is18 || false;
+
+    // Arayüz başlıklarını güncelle
+    document.getElementById("formTitle").innerHTML = `<i class="fa-solid fa-pen-to-square"></i> "${series.title}" Serisini Düzenle`;
+    document.getElementById("btnSubmitSeries").innerText = "Değişiklikleri Kaydet (Güncelle)";
+    document.getElementById("btnCancelEdit").style.display = "block";
+    document.getElementById("editModeBadge").style.display = "block";
+
+    // Seri ekleme sekmesine otomatik geç
+    switchTab("series");
+    
+    // Sayfayı forma odakla
+    document.getElementById("formTitle").scrollIntoView({ behavior: 'smooth' });
+}
+
+// Düzenlemeyi İptal Et
+function cancelEdit() {
+    editingSeriesId = null;
+
+    // Formu temizle
+    document.getElementById("seriesTitle").value = "";
+    document.getElementById("seriesSlug").value = "";
+    document.getElementById("seriesAltTitle").value = "";
+    document.getElementById("seriesDescription").value = "";
+    document.getElementById("seriesCover").value = "";
+    document.getElementById("seriesGenres").value = "";
+    document.getElementById("seriesScore").value = "8.5";
+    document.getElementById("seriesIs18").checked = false;
+
+    // Arayüzü eski haline getir
+    document.getElementById("formTitle").innerHTML = `<i class="fa-solid fa-book"></i> Yeni Seri Bilgileri`;
+    document.getElementById("btnSubmitSeries").innerText = "Seriyi Depoya Commit Et";
+    document.getElementById("btnCancelEdit").style.display = "none";
+    document.getElementById("editModeBadge").style.display = "none";
+
+    switchTab("manage");
+}
+
+// Yeni/Düzenle Seri Kaydet (Submit)
 async function submitSeries() {
     const title = document.getElementById("seriesTitle").value.trim();
+    let slug = document.getElementById("seriesSlug").value.trim();
     const altTitle = document.getElementById("seriesAltTitle").value.trim();
     const description = document.getElementById("seriesDescription").value.trim();
     const cover = document.getElementById("seriesCover").value.trim();
@@ -226,17 +294,21 @@ async function submitSeries() {
     const is18 = document.getElementById("seriesIs18").checked;
 
     if (!title || !description || !cover) {
-        showStatus("globalMsg", "Lütfen tüm zorunlu alanları (Ad, Konu, Kapak Resmi) doldurun!", "error");
+        showStatus("globalMsg", "Lütfen zorunlu alanları (Ad, Konu, Kapak Resmi) doldurun!", "error");
         return;
     }
 
-    const seriesId = generateSlug(title);
+    // Eğer kullanıcı özel slug vermediyse otomatik üretelim
+    if (!slug) {
+        slug = generateSlug(title);
+    } else {
+        slug = generateSlug(slug); // Özel girilse bile güvenli URL formatına süzüyoruz
+    }
     
-    // Türleri diziye çevir
     const genres = genresInput.split(",").map(g => g.trim()).filter(g => g.length > 0);
 
-    const newSeries = {
-        id: seriesId,
+    const targetSeries = {
+        id: slug,
         title: title,
         altTitle: altTitle,
         description: description,
@@ -246,36 +318,41 @@ async function submitSeries() {
         genres: genres,
         score: score,
         is18: is18,
-        chapters: [] // Bölümlerin meta verileri buraya eklenecek
+        chapters: [] // Bölüm listesi
     };
 
     try {
         const fileData = await getGithubFile("data/series.json");
         let list = fileData.content ? JSON.parse(fileData.content) : [];
         
-        // Eğer seri zaten varsa üzerine yazmak yerine uyaralım
-        const existingIndex = list.findIndex(s => s.id === seriesId);
-        if (existingIndex > -1) {
-            if (!confirm("Bu isimde bir seri zaten mevcut. Güncellemek istiyor musunuz?")) {
-                return;
+        if (editingSeriesId) {
+            // --- DÜZENLEME MODU AKTİFSE ---
+            const index = list.findIndex(s => s.id === editingSeriesId);
+            if (index > -1) {
+                // Mevcut bölümleri kaybetmemek için yeni nesneye aktarıyoruz
+                targetSeries.chapters = list[index].chapters || [];
+                list[index] = targetSeries;
             }
-            // Mevcut serinin bölümlerini koruyalım
-            newSeries.chapters = list[existingIndex].chapters || [];
-            list[existingIndex] = newSeries;
         } else {
-            list.push(newSeries);
+            // --- YENİ SERİ EKLEME ---
+            const existingIndex = list.findIndex(s => s.id === slug);
+            if (existingIndex > -1) {
+                if (!confirm("Bu isimde veya linkte bir seri zaten mevcut. Güncellemek istiyor musunuz?")) {
+                    return;
+                }
+                targetSeries.chapters = list[existingIndex].chapters || [];
+                list[existingIndex] = targetSeries;
+            } else {
+                list.push(targetSeries);
+            }
         }
 
-        await writeGithubFile("data/series.json", JSON.stringify(list, null, 2), fileData.sha, `${title} serisi eklendi/güncellendi`);
-        showStatus("globalMsg", `"${title}" serisi başarıyla GitHub deponuza eklendi!`, "success");
+        await writeGithubFile("data/series.json", JSON.stringify(list, null, 2), fileData.sha, `${title} serisi kaydedildi`);
+        showStatus("globalMsg", `"${title}" serisi başarıyla GitHub deponuza kaydedildi!`, "success");
         
-        // Formu sıfırla
-        document.getElementById("seriesTitle").value = "";
-        document.getElementById("seriesAltTitle").value = "";
-        document.getElementById("seriesDescription").value = "";
-        document.getElementById("seriesCover").value = "";
-        document.getElementById("seriesGenres").value = "";
-        
+        // Düzenleme modunu sıfırla
+        editingSeriesId = null;
+        cancelEdit();
         fetchSeriesList();
     } catch (err) {
         showStatus("globalMsg", "Seri kaydedilirken hata: " + err.message, "error");
@@ -284,7 +361,7 @@ async function submitSeries() {
 
 // Seri Sil
 async function deleteSeries(id) {
-    if (!confirm("Bu seriyi ve ona bağlı tüm meta verileri silmek istediğinize emin misiniz? (Depodaki bölüm içerik dosyaları manuel silinmelidir)")) {
+    if (!confirm("Bu seriyi ve ona bağlı tüm meta verileri silmek istediğinize emin misiniz?")) {
         return;
     }
 
@@ -324,7 +401,6 @@ function parseWebtoonImages(input) {
         urls.push(match[1]);
     }
     if (urls.length === 0) {
-        // Eğer HTML bulunamadıysa her satırı bağımsız bir link say
         return input.split('\n').map(url => url.trim()).filter(url => url.length > 0);
     }
     return urls;
@@ -356,14 +432,14 @@ async function submitChapter() {
             showStatus("globalMsg", "Lütfen webtoon resim linklerini veya embed kodlarını girin!", "error");
             return;
         }
-        finalContent = parsedImages; // Resim linkleri dizisi olarak saklayacağız
+        finalContent = parsedImages;
     } else {
         const rawContent = document.getElementById("novelContent").value.trim();
         if (!rawContent) {
             showStatus("globalMsg", "Lütfen novel metnini boş bırakmayın!", "error");
             return;
         }
-        finalContent = rawContent; // Doğrudan text metin
+        finalContent = rawContent;
     }
 
     const chapterPayload = {
@@ -383,7 +459,7 @@ async function submitChapter() {
         
         await writeGithubFile(path, JSON.stringify(chapterPayload, null, 2), existingFile.sha, `${seriesId} - ${title} içeriği eklendi`);
 
-        // 2. Ana data/series.json dosyasını güncelle ve bu bölümün meta bilgisini serinin altına kaydet
+        // 2. Ana data/series.json dosyasını güncelle
         const seriesFileData = await getGithubFile("data/series.json");
         let seriesList = JSON.parse(seriesFileData.content);
         const targetSeriesIndex = seriesList.findIndex(s => s.id === seriesId);
@@ -393,7 +469,6 @@ async function submitChapter() {
                 seriesList[targetSeriesIndex].chapters = [];
             }
             
-            // Eğer aynı bölüm id'si varsa listede güncelle, yoksa ekle
             const existChIndex = seriesList[targetSeriesIndex].chapters.findIndex(c => c.id === chapterId);
             const chapterMeta = {
                 id: chapterId,
@@ -405,7 +480,6 @@ async function submitChapter() {
             if (existChIndex > -1) {
                 seriesList[targetSeriesIndex].chapters[existChIndex] = chapterMeta;
             } else {
-                // Bölümleri genellikle baştan sona listelemek için sırayla ekleriz
                 seriesList[targetSeriesIndex].chapters.push(chapterMeta);
             }
 
@@ -418,6 +492,8 @@ async function submitChapter() {
         document.getElementById("chapterTitle").value = "";
         document.getElementById("webtoonContent").value = "";
         document.getElementById("novelContent").value = "";
+        document.getElementById("chapterSeriesSearch").value = "";
+        filterSeriesDropdown();
     } catch (err) {
         showStatus("globalMsg", "Bölüm yüklenirken hata oluştu: " + err.message, "error");
     }
