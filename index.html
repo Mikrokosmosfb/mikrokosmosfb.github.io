@@ -2,75 +2,64 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Mikrokosmos Fansub | Orijinal Tema</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mikrokosmos Fansub</title>
+    <!-- CSS Dosyasını Bağlıyoruz -->
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- JQuery ve Orijinal Scriptler -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body id="modeSwitch">
-    <!-- XML'deki Orijinal Üst Menü -->
     <header class="bg-main header-background">
-        <div class="max-w mra mla grid gtc-header aic">
+        <div class="max-w gtc-header">
             <div class="logo">
-                <a href="index.html" class="c-fff fsi fs-20 fw-600">Mikrokosmos <span>FB</span></a>
+                <a href="index.html">Mikrokosmos <span>FB</span></a>
             </div>
-            <nav id="PageList1">
-                <ul class="flex m-0 lsn pl-0">
-                    <li><a class="block px-5 lh-37 c-fff fs-14" href="index.html">Ana Sayfa</a></li>
-                    <li><a class="block px-5 lh-37 c-fff fs-14" href="seriler.html">Seriler</a></li>
-                    <li><a class="block px-5 lh-37 c-fff fs-14" href="kutuphane.html">Kütüphane</a></li>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Ana Sayfa</a></li>
+                    <li><a href="seriler.html">Seriler</a></li>
+                    <li><a href="admin.html">Panel</a></li>
                 </ul>
             </nav>
         </div>
     </header>
 
-    <main class="mla mra grid gtc-main gg-20 relative mx-feed mt-sv15 max-w">
-        <!-- SOL İÇERİK ALANI -->
+    <main class="max-w gtc-main">
+        <!-- SOL İÇERİK -->
         <section id="main">
-            <!-- XML: Yeni Yüklenen Noveller (myGridv2) -->
-            <div class="releases p-y0x15 flex relative jcsb">
-                <h3 class="title flex aic jcsb" style="background: linear-gradient(to right, #7b1fa2, #3367D6); color:white; padding:10px;">
-                    <span><i class="fa-solid fa-book"></i> Yeni Yüklenen Noveller</span>
-                </h3>
-            </div>
-            <div id="Update" class="myGridv2">
-                <!-- Burası JS ile JSON'dan dolacak -->
+            <!-- Noveller -->
+            <div class="releases">
+                <h3><i class="fa-solid fa-book"></i> Yeni Yüklenen Noveller</h3>
+                <div id="Update" class="myGridv2">
+                   <!-- JS ile dolacak -->
+                </div>
             </div>
 
-            <!-- XML: Yeni Yüklenen Bölümler (myGrid) -->
-            <div class="releases p-y0x15 flex relative jcsb" style="margin-top:20px;">
-                <h3 class="title flex aic jcsb" style="background: linear-gradient(to right, #7b1fa2, #3367D6); color:white; padding:10px;">
-                    <span><i class="fa-solid fa-sync"></i> Son Güncellenenler</span>
-                </h3>
-            </div>
-            <div id="myManga" class="myGrid">
-                <!-- Burası JS ile JSON'dan dolacak -->
+            <!-- Manhwalar -->
+            <div class="releases" style="margin-top:30px;">
+                <h3><i class="fa-solid fa-sync"></i> Son Güncellenenler</h3>
+                <div id="myManga" class="myGrid">
+                    <!-- JS ile dolacak -->
+                </div>
             </div>
         </section>
 
-        <!-- SAĞ SİDEBAR -->
+        <!-- SAĞ SIDEBAR -->
         <aside id="sidebar">
-            <div class="widget PopularPosts">
+            <div class="widget">
                 <h2 class="title">Yükselişte Olanlar</h2>
                 <div id="popular-list">
-                    <!-- Orijinal Sidebar yapısı -->
+                    <p style="font-size:13px; color:#999;">Henüz veri yok...</p>
                 </div>
             </div>
         </aside>
     </main>
 
-    <!-- Orijinal Footer -->
-    <footer class="bc-22">
-        <div class="max-w mra mla c-cc fs-12 p-13 tac bg-main">
-            © 2024 Mikrokosmos FB | Tüm Hakları Saklıdır.
-        </div>
+    <footer style="background:#17151b; color:#999; text-align:center; padding:20px; margin-top:40px;">
+        <p>© 2024 Mikrokosmos FB | Tüm Hakları Saklıdır.</p>
     </footer>
 
+    <!-- Scriptleri En Alta Ekliyoruz -->
     <script src="assets/js/core.js"></script>
-    <script>
-        // Orijinal Dark Mode Mantığı
-        if(localStorage.getItem('mode') === 'darkmode') document.body.classList.add('dark-mode');
-    </script>
 </body>
 </html>
