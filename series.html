@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        /* Seri Detay Sayfasına Özel Blur & Banner Tasarımı */
         .bg-photo-container {
             position: relative;
             height: 300px;
@@ -48,7 +47,6 @@
         .dark-mode .series-info-box {
             background: #222;
         }
-        /* Bölüm Listesi Arama ve Sıralama Barı */
         .chapter-list-header {
             display: flex;
             justify-content: space-between;
@@ -105,7 +103,6 @@
             font-weight: bold;
             font-size: 15px;
         }
-        /* +18 Yaş Uyarısı Pop-up (Blogger'daki resWarn tasarımı) */
         .resWarn {
             position: fixed;
             inset: 0;
@@ -144,6 +141,8 @@
         }
     </script>
 
+    <span class="rippleff" id="clickRipple"></span>
+
     <!-- +18 Yaş Onay Pop-up -->
     <div id="ageWarning" class="resWarn">
         <div class="resFile">
@@ -155,21 +154,52 @@
         </div>
     </div>
 
-    <!-- Üst Başlık (Navbar) -->
+    <!-- Birebir Görsel Header (Row 1) -->
     <header>
-        <div class="max-w flex jcsb aic">
-            <a href="index.html" class="header-logo"><i class="fa-solid fa-space-awesome"></i> MİKROKOSMOS</a>
-            <nav>
-                <ul>
-                    <li><a href="index.html">Ana Sayfa</a></li>
-                    <li><a href="seriler.html">Seriler</a></li>
-                    <li><a href="bookmark.html">Kütüphanem</a></li>
-                </ul>
+        <div class="max-w header-container">
+            <div class="flex aic gap-15">
+                <i class="fa-solid fa-bars menu-toggle-btn" onclick="toggleMobileMenu()"></i>
+                <a href="index.html" class="header-logo-link">
+                    <img src="https://blogger.googleusercontent.com/img/a/AVvXsEjVv-oixP9NPWX-EcVGiGKMIFaWlrv0HtFrJ3KtPJGPZbNkMdKV2ZTHYXWwtd0YxXZXsTQVzfEJK9ZZrQwygaVXjn99XAsmIy7FVUtAhMGNpqm9wyB17Dsx-CQebDnTplj3wY5qv-smuQFxobZNLa340zpSjDlx-pPmlv1_o3JyIOiG-Oy_kJLU-ww=s783" alt="Mikrokosmos Logo">
+                </a>
+            </div>
+            
+            <nav class="header-nav" id="headerNav">
+                <a href="index.html"><i class="fa-solid fa-house"></i> Ana Sayfa</a>
+                <a href="seriler.html"><i class="fa-solid fa-list-ul"></i> Seriler</a>
+                <a href="seriler.html"><i class="fa-solid fa-table-cells-large"></i> Katagoriler</a>
+                <a href="seriler.html"><i class="fa-solid fa-arrow-down-a-z"></i> A-Z Liste</a>
+                <div class="dropdown">
+                    <a href="#" class="dropbtn"><i class="fa-solid fa-circle-nodes"></i> Diğer <i class="fa-solid fa-caret-down"></i></a>
+                    <div class="dropdown-content">
+                        <a href="https://discord.gg/5d6sseKRfs" target="_blank">- Discord</a>
+                        <a href="#">- Ekip Başvuru</a>
+                        <a href="#">- İstek Paneli</a>
+                        <a href="#">- Sorun Bildir</a>
+                    </div>
+                </div>
             </nav>
+
+            <div class="flex aic gap-15">
+                <div class="dark-mode-container">
+                    <label class="switch">
+                        <input type="checkbox" id="darkModeToggle" onclick="toggleDarkMode()">
+                        <span class="slider-round"></span>
+                    </label>
+                </div>
+
+                <div class="search-container">
+                    <input type="text" id="liveSearchInput" placeholder="Bu blogda ara">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <div id="resLive"></div>
+                </div>
+
+                <a href="bookmark.html" class="kutuphane-btn"><i class="fa-solid fa-book"></i> Kütüphane</a>
+            </div>
         </div>
     </header>
 
-    <!-- Blur Efektli Arka Plan Resmi -->
+    <!-- Blur Arka Plan -->
     <div class="bg-photo-container">
         <div class="hero-background" id="heroBg" style="background-image: url('assets/images/default.png');"></div>
     </div>
@@ -178,18 +208,13 @@
     <div class="max-w series-header-grid">
         <div class="grid" style="grid-template-columns: 1fr; gap: 20px;">
             <div class="flex fdc-375" style="gap: 25px; align-items: flex-start;">
-                
-                <!-- Sol Sütun: Kapak Resmi & Butonlar -->
                 <div class="series-cover-wrapper" style="width: 100%; max-width: 220px; flex-shrink: 0; margin: 0 auto;">
                     <img id="seriesCover" class="series-cover-img" src="" alt="Yükleniyor...">
-                    
-                    <!-- Kütüphaneye Ekle Butonu -->
                     <button id="bookmarkBtn" class="btn-submit" onclick="toggleBookmark()" style="width: 100%; margin-top: 15px; border-radius: 30px; display: flex; align-items: center; justify-content: center; gap: 8px;">
                         <i class="fa-solid fa-bookmark"></i> <span id="bookmarkText">Kütüphaneye Ekle</span>
                     </button>
                 </div>
 
-                <!-- Sağ Sütun: Metin Bilgileri -->
                 <div class="series-info-box" style="flex: 1; width: 100%; box-sizing: border-box;">
                     <h1 id="seriesTitle" style="margin: 0 0 5px 0; font-size: 32px; color: var(--primary-color);">Yükleniyor...</h1>
                     <h3 id="seriesAltTitle" style="margin: 0 0 15px 0; font-size: 16px; opacity: 0.6; font-weight: normal;">...</h3>
@@ -207,7 +232,6 @@
                         <p style="font-size: 13.5px; margin: 5px 0;"><strong>Kategoriler:</strong> <span id="seriesGenres" style="opacity: 0.8;">...</span></p>
                     </div>
                 </div>
-
             </div>
         </div>
 
@@ -225,15 +249,17 @@
             </div>
 
             <div class="chapter-list-container">
-                <div id="chapterList" style="display: flex; flex-direction: column;">
-                    <!-- JS ile Bölümler Buraya Akacak -->
-                </div>
+                <div id="chapterList" style="display: flex; flex-direction: column;"></div>
             </div>
         </div>
     </div>
 
-    <!-- Seri Detay Sayfası JS Motoru -->
+    <script src="assets/js/app.js"></script>
     <script>
+        function toggleMobileMenu() {
+            document.getElementById("headerNav").classList.toggle("active");
+        }
+
         let currentSeries = null;
         let isNewestFirst = true;
 
