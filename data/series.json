@@ -1,0 +1,11 @@
+[
+  {
+    "id": "seri-1",
+    "title": "Örnek Manhwa",
+    "type": "manhwa",
+    "status": "Devam Ediyor",
+    "thumb": "https://placehold.co/400x600/7b1fa2/white?text=Kapak",
+    "genres": ["Aksiyon", "Dram"],
+    "desc": "Bu bir örnek açıklamadır."
+  }
+]
