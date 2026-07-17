@@ -1,0 +1,152 @@
+<!-- seriler.html -->
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tüm Serilerimiz - Mikrokosmos</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .filter-section {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .dark-mode .filter-section {
+            background: #222;
+        }
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .filter-grid select, .filter-grid input {
+            padding: 8px 12px;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+            outline: none;
+            font-size: 14px;
+        }
+        .dark-mode .filter-grid select, .dark-mode .filter-grid input {
+            background: #333;
+            border-color: #444;
+            color: white;
+        }
+    </style>
+</head>
+<body id="modeSwitch">
+    <script>
+        if (localStorage.getItem('mode') === 'darkmode') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+
+    <!-- Navbar -->
+    <header>
+        <div class="max-w flex jcsb aic">
+            <a href="index.html" class="header-logo"><i class="fa-solid fa-space-awesome"></i> MİKROKOSMOS</a>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Ana Sayfa</a></li>
+                    <li><a href="seriler.html" style="border-bottom: 2px solid white;">Seriler</a></li>
+                    <li><a href="bookmark.html">Kütüphanem</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="max-w" style="margin-top: 30px; margin-bottom: 50px;">
+        
+        <!-- Filtreleme Paneli -->
+        <div class="filter-section">
+            <h3 style="margin-top:0; color: var(--primary-color);"><i class="fa-solid fa-filter"></i> Gelişmiş Seri Arama</h3>
+            <div class="filter-grid">
+                <input type="text" id="filterSearch" oninput="applyFilters()" placeholder="Seri adı ile ara...">
+                
+                <select id="filterType" onchange="applyFilters()">
+                    <option value="">Tüm Tipler</option>
+                    <option value="Manga">Manga</option>
+                    <option value="Manhwa">Manhwa</option>
+                    <option value="Manhua">Manhua</option>
+                    <option value="Webtoon">Webtoon</option>
+                    <option value="Novel">Novel</option>
+                </select>
+
+                <select id="filterStatus" onchange="applyFilters()">
+                    <option value="">Tüm Durumlar</option>
+                    <option value="Devam Ediyor">Devam Ediyor</option>
+                    <option value="Tamamlandı">Tamamlandı</option>
+                    <option value="Güncel">Güncel</option>
+                    <option value="Yakında">Yakında</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Seriler Grid Alanı -->
+        <h2 style="color: var(--primary-color); border-bottom: 1px solid #ddd; padding-bottom: 10px;"><i class="fa-solid fa-rectangle-list"></i> Tüm Yapıtlarımız</h2>
+        <div id="seriesGrid" class="myGrid">
+            <!-- JS ile Seriler Buraya Dolacak -->
+        </div>
+    </div>
+
+    <script>
+        let allSeries = [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            fetch("data/series.json?t=" + new Date().getTime())
+                .then(res => res.json())
+                .then(data => {
+                    allSeries = data;
+                    renderSeries(allSeries);
+                });
+        });
+
+        function renderSeries(list) {
+            const container = document.getElementById("seriesGrid");
+            if (list.length === 0) {
+                container.innerHTML = "<p style='color:#999; padding: 20px; text-align:center; grid-column: 1/-1;'>Eşleşen seri bulunamadı.</p>";
+                return;
+            }
+
+            container.innerHTML = "";
+            list.forEach(s => {
+                const badgeClass = s.type.toLowerCase();
+                container.innerHTML += `
+                    <div class="bookItem">
+                        <a href="series.html?id=${s.id}">
+                            <div class="snippet-thumbnail">
+                                <img src="${s.cover}" alt="${s.title}">
+                                <span class="po ${badgeClass}">${s.type}</span>
+                            </div>
+                        </a>
+                        <div class="data">
+                            <h2><a href="series.html?id=${s.id}">${s.title}</a></h2>
+                            <small style="color: #ffc107; font-weight:bold;"><i class="fas fa-star"></i> ${s.score}</small>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function applyFilters() {
+            const searchQuery = document.getElementById("filterSearch").value.trim().toLowerCase();
+            const selectedType = document.getElementById("filterType").value;
+            const selectedStatus = document.getElementById("filterStatus").value;
+
+            const filtered = allSeries.filter(s => {
+                const matchesSearch = s.title.toLowerCase().includes(searchQuery) || (s.altTitle && s.altTitle.toLowerCase().includes(searchQuery));
+                const matchesType = selectedType === "" || s.type === selectedType;
+                const matchesStatus = selectedStatus === "" || s.status === selectedStatus;
+
+                return matchesSearch && matchesType && matchesStatus;
+            });
+
+            renderSeries(filtered);
+        }
+    </script>
+</body>
+</html>
