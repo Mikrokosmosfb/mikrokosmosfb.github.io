@@ -45,22 +45,54 @@
         }
     </script>
 
-    <!-- Navbar -->
+    <span class="rippleff" id="clickRipple"></span>
+
+    <!-- Birebir Görsel Header (Row 1) -->
     <header>
-        <div class="max-w flex jcsb aic">
-            <a href="index.html" class="header-logo"><i class="fa-solid fa-space-awesome"></i> MİKROKOSMOS</a>
-            <nav>
-                <ul>
-                    <li><a href="index.html">Ana Sayfa</a></li>
-                    <li><a href="seriler.html" style="border-bottom: 2px solid white;">Seriler</a></li>
-                    <li><a href="bookmark.html">Kütüphanem</a></li>
-                </ul>
+        <div class="max-w header-container">
+            <div class="flex aic gap-15">
+                <i class="fa-solid fa-bars menu-toggle-btn" onclick="toggleMobileMenu()"></i>
+                <a href="index.html" class="header-logo-link">
+                    <img src="https://blogger.googleusercontent.com/img/a/AVvXsEjVv-oixP9NPWX-EcVGiGKMIFaWlrv0HtFrJ3KtPJGPZbNkMdKV2ZTHYXWwtd0YxXZXsTQVzfEJK9ZZrQwygaVXjn99XAsmIy7FVUtAhMGNpqm9wyB17Dsx-CQebDnTfplj3wY5qv-smuQFxobZNLa340zpSjDlx-pPmlv1_o3JyIOiG-Oy_kJLU-ww=s783" alt="Mikrokosmos Logo">
+                </a>
+            </div>
+            
+            <nav class="header-nav" id="headerNav">
+                <a href="index.html"><i class="fa-solid fa-house"></i> Ana Sayfa</a>
+                <a href="seriler.html"><i class="fa-solid fa-list-ul"></i> Seriler</a>
+                <a href="seriler.html"><i class="fa-solid fa-table-cells-large"></i> Katagoriler</a>
+                <a href="seriler.html"><i class="fa-solid fa-arrow-down-a-z"></i> A-Z Liste</a>
+                <div class="dropdown">
+                    <a href="#" class="dropbtn"><i class="fa-solid fa-circle-nodes"></i> Diğer <i class="fa-solid fa-caret-down"></i></a>
+                    <div class="dropdown-content">
+                        <a href="https://discord.gg/5d6sseKRfs" target="_blank">- Discord</a>
+                        <a href="#">- Ekip Başvuru</a>
+                        <a href="#">- İstek Paneli</a>
+                        <a href="#">- Sorun Bildir</a>
+                    </div>
+                </div>
             </nav>
+
+            <div class="flex aic gap-15">
+                <div class="dark-mode-container">
+                    <label class="switch">
+                        <input type="checkbox" id="darkModeToggle" onclick="toggleDarkMode()">
+                        <span class="slider-round"></span>
+                    </label>
+                </div>
+
+                <div class="search-container">
+                    <input type="text" id="liveSearchInput" placeholder="Bu blogda ara">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <div id="resLive"></div>
+                </div>
+
+                <a href="bookmark.html" class="kutuphane-btn"><i class="fa-solid fa-book"></i> Kütüphane</a>
+            </div>
         </div>
     </header>
 
     <div class="max-w" style="margin-top: 30px; margin-bottom: 50px;">
-        
         <!-- Filtreleme Paneli -->
         <div class="filter-section">
             <h3 style="margin-top:0; color: var(--primary-color);"><i class="fa-solid fa-filter"></i> Gelişmiş Seri Arama</h3>
@@ -86,16 +118,17 @@
             </div>
         </div>
 
-        <!-- Seriler Grid Alanı -->
         <h2 style="color: var(--primary-color); border-bottom: 1px solid #ddd; padding-bottom: 10px;"><i class="fa-solid fa-rectangle-list"></i> Tüm Yapıtlarımız</h2>
-        <div id="seriesGrid" class="myGrid">
-            <!-- JS ile Seriler Buraya Dolacak -->
-        </div>
+        <div id="seriesGrid" class="myGrid"></div>
     </div>
 
+    <script src="assets/js/app.js"></script>
     <script>
-        let allSeries = [];
+        function toggleMobileMenu() {
+            document.getElementById("headerNav").classList.toggle("active");
+        }
 
+        let allSeries = [];
         document.addEventListener("DOMContentLoaded", () => {
             fetch("data/series.json?t=" + new Date().getTime())
                 .then(res => res.json())
