@@ -125,7 +125,7 @@ header {
   cursor: pointer;
 }
 
-/* Koyu Mod Toggles (Görselinizdeki gibi) */
+/* Koyu Mod Toggles */
 .dark-mode-container {
   display: flex;
   align-items: center;
@@ -261,7 +261,7 @@ input:checked + .slider-round:before {
   color: white;
 }
 
-/* --- ROW 2: IGNIEL HORIZONTAL BUTTONS (Birebir Tasarım) --- */
+/* --- ROW 2: IGNIEL HORIZONTAL BUTTONS --- */
 .ignielHorizontal {
   background: linear-gradient(90deg, #7b1fa2, #3367D6);
   padding: 10px 0;
@@ -309,7 +309,7 @@ input:checked + .slider-round:before {
     display: block;
   }
   .header-nav {
-    display: none; /* Mobilde hamburger tıklandığında açılacak */
+    display: none;
     width: 100%;
     flex-direction: column;
     align-items: flex-start;
