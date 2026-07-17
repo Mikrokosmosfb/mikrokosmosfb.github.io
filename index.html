@@ -5,11 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mikrokosmos - Türkçe Manga, Webtoon ve Novel Okuma Galaksiniz</title>
-    <!-- Stil Dosyaları -->
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        /* Ana Sayfaya Özel Ek Tasarımlar */
         .header-logo {
             font-size: 22px;
             font-weight: 800;
@@ -53,7 +51,6 @@
             color: white;
             font-size: 13px;
         }
-        /* Sürgülü Kategori Menüsü (Blogger'daki Tasarımınız) */
         .ignielHorizontal ul {
             background-color: var(--primary-color);
             padding: 10px;
@@ -82,7 +79,6 @@
             background: #8976d6;
             transform: translateY(-2px);
         }
-        /* Slider Alanı */
         .hero-slider {
             background: #17151b;
             border-radius: 18px;
@@ -118,7 +114,6 @@
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
-        /* İki Sütunlu Sayfa Yapısı */
         .main-grid {
             display: grid;
             grid-template-columns: 1fr 340px;
@@ -129,19 +124,18 @@
                 grid-template-columns: 1fr;
             }
         }
-        /* Novel Bölümü Yatay Sürgü Stili */
         .myGridv2 {
             display: flex;
             gap: 15px;
             overflow-x: auto;
             padding: 10px 5px;
-            scrollbar-width: thin;
+            scrollbar-width: none;
         }
+        .myGridv2::-webkit-scrollbar { display: none; }
         .myGridv2 .bookItem {
             flex: 0 0 145px;
             max-width: 145px;
         }
-        /* Bölümler Listesi (Alt Başlıklar) */
         .subItem {
             list-style: none;
             padding: 0;
@@ -159,17 +153,52 @@
         .dark-mode .subItem li {
             background: rgba(255,255,255,0.05);
         }
+        /* Tab (Sekme) Tasarımı */
+        .tab-menu {
+            display: flex;
+            background: #eee;
+            padding: 5px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .dark-mode .tab-menu {
+            background: #333;
+        }
+        .tab-menu span {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+        .tab-menu span.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
     </style>
 </head>
 <body id="modeSwitch">
     <script>
-        // Sayfa yüklenirken karanlık mod kontrolü
         if (localStorage.getItem('mode') === 'darkmode') {
             document.body.classList.add('dark-mode');
         }
     </script>
 
-    <!-- Üst Başlık (Navbar) -->
+    <!-- Orijinal Tıklama Ripple Dairesi -->
+    <span class="rippleff" id="clickRipple"></span>
+
+    <!-- Navbar -->
     <header>
         <div class="max-w flex jcsb aic">
             <div class="flex aic gap-15">
@@ -180,18 +209,16 @@
                 <ul>
                     <li><a href="index.html"><i class="fa-solid fa-house"></i> Ana Sayfa</a></li>
                     <li><a href="seriler.html"><i class="fa-solid fa-list"></i> Seriler</a></li>
-                    <li><a href="bookmark.html" id="kutuphane-link"><i class="fa-solid fa-bookmark"></i> Kütüphanem</a></li>
+                    <li><a href="bookmark.html"><i class="fa-solid fa-bookmark"></i> Kütüphanem</a></li>
                 </ul>
             </nav>
 
             <div class="flex aic gap-15">
-                <!-- Karanlık Mod Switch -->
                 <label class="modeSwitch" style="margin-right: 15px; cursor: pointer;">
                     <input type="checkbox" id="darkModeToggle" onclick="toggleDarkMode()" style="display:none;">
                     <i class="fa-solid fa-circle-half-stroke" style="font-size: 18px; color: white;"></i>
                 </label>
 
-                <!-- Canlı Arama Kutusu -->
                 <div class="search-container">
                     <input type="text" id="liveSearchInput" placeholder="Seri ara..." style="padding: 6px 12px; border: none; border-radius: 20px; font-size: 13px; width: 180px; outline: none;">
                     <div id="resLive"></div>
@@ -201,18 +228,18 @@
     </header>
 
     <div class="max-w">
-        <!-- Hızlı Erişim Butonları (Igniel Menü) -->
+        <!-- Igniel Menü -->
         <div class="ignielHorizontal">
             <ul>
-                <li><a href="#"><i class="fa-brands fa-discord"></i> Discord</a></li>
+                <li><a href="https://discord.gg/5d6sseKRfs" target="_blank"><i class="fa-brands fa-discord"></i> Discord</a></li>
                 <li><a href="seriler.html"><i class="fa-solid fa-rectangle-list"></i> Tüm Seriler</a></li>
                 <li><a href="admin.html"><i class="fa-solid fa-screwdriver-wrench"></i> Admin Paneli</a></li>
             </ul>
         </div>
 
-        <!-- Öne Çıkan Slider Alanı -->
+        <!-- Öne Çıkan Slider -->
         <div class="hero-slider" id="featuredSlider">
-            <div class="slider-bg" style="background-image: url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh_placeholder/s600/default.png');"></div>
+            <div class="slider-bg" style="background-image: url('assets/images/default.png');"></div>
             <div class="slider-content">
                 <div class="slider-loading" style="margin: auto; text-align: center;">
                     <i class="fa-solid fa-spinner fa-spin" style="font-size: 30px;"></i>
@@ -221,57 +248,67 @@
             </div>
         </div>
 
-        <!-- İki Sütunlu Yapı (Ana İçerik & Sidebar) -->
+        <!-- İki Sütunlu Sayfa Yapısı -->
         <div class="main-grid">
             
             <!-- SOL TARAF: Son Güncellemeler -->
             <section>
-                <!-- Yatay Sürgülü Novel Sütunu -->
                 <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 25px;" class="dark-mode-card">
                     <h3 style="margin-top: 0; color: var(--primary-color); border-bottom: 1px solid #eee; padding-bottom: 10px;">
                         <i class="fa-solid fa-book"></i> Yeni Yüklenen Noveller
                     </h3>
-                    <div id="Update" class="myGridv2">
-                        <!-- JS ile Noveller Buraya Akacak -->
-                    </div>
+                    <div id="Update" class="myGridv2"></div>
                 </div>
 
-                <!-- Dikey Blok Bölüm Listeleri (Manga/Webtoon) -->
                 <div style="background: white; padding: 15px; border-radius: 12px;" class="dark-mode-card">
                     <h3 style="margin-top: 0; color: var(--primary-color); border-bottom: 1px solid #eee; padding-bottom: 10px;">
                         <i class="fa-solid fa-rectangle-list"></i> Son Güncellenen Bölümler
                     </h3>
-                    <div id="myManga" class="myGrid">
-                        <!-- JS ile Mangalar Buraya Akacak -->
-                    </div>
+                    <div id="myManga" class="myGrid"></div>
                 </div>
             </section>
 
             <!-- SAĞ TARAF: Sidebar -->
             <aside>
-                <!-- En Popülerler Widgetı -->
+                <!-- YENİ: En Son Okuduğunuz (Okuma Geçmişi Widget'ı) -->
                 <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 25px;" class="dark-mode-card">
                     <h3 style="margin-top: 0; color: var(--primary-color); border-bottom: 1px solid #eee; padding-bottom: 10px;">
-                        <i class="fa-solid fa-fire"></i> En Sevilen Seriler
+                        <i class="fa-solid fa-clock-rotate-left"></i> En Son Okuduğunuz
                     </h3>
-                    <div id="popularSidebar" style="display: flex; flex-direction: column; gap: 15px;">
-                        <!-- JS ile Popülerler Buraya Akacak -->
+                    <div id="theHistory" style="display: flex; flex-direction: column; gap: 8px;">
+                        <p style="font-size: 13px; opacity: 0.6; text-align: center;">Henüz geçmiş bulunmuyor.</p>
                     </div>
+                </div>
+
+                <!-- Tab Menülü Popüler Gönderiler -->
+                <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 25px;" class="dark-mode-card">
+                    <h3 style="margin-top: 0; color: var(--primary-color); border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px;">
+                        <i class="fa-solid fa-fire"></i> En Çok Beğenilenler
+                    </h3>
+                    
+                    <div class="tab-menu">
+                        <span id="tab-week-btn" class="active" onclick="switchPopularTab('week')">Haftalık</span>
+                        <span id="tab-month-btn" onclick="switchPopularTab('month')">Aylık</span>
+                        <span id="tab-year-btn" onclick="switchPopularTab('year')">Yıllık</span>
+                    </div>
+
+                    <div id="popular-week" class="tab-pane active"></div>
+                    <div id="popular-month" class="tab-pane"></div>
+                    <div id="popular-year" class="tab-pane"></div>
                 </div>
             </aside>
 
         </div>
     </div>
 
-    <!-- Alt Bilgi (Footer) -->
+    <!-- Footer -->
     <footer style="background: #17151b; color: #999; text-align: center; padding: 25px 0; margin-top: 50px; font-size: 13px; border-top: 4px solid var(--primary-color);">
         <div class="max-w">
-            <p>Bu web sitesinde çevrilen tüm seriler orijinal sahiplerinin reklamı niteliğindedir. DMCA talepleri için lütfen iletişime geçin.</p>
+            <p>Bu web sitesinde çevrilen tüm seriler orijinal sahiplerinin reklamı niteliğindedir. Telif durumunda mikrokosmosfansub@gmail.com adresinden bizimle iletişime geçiniz.</p>
             <p>&copy; <script>document.write(new Date().getFullYear())</script> <strong>Mikrokosmos.</strong> Tüm Hakları Saklıdır.</p>
         </div>
     </footer>
 
-    <!-- Sistem Motoru JS Bağlantısı -->
     <script src="assets/js/app.js"></script>
 </body>
 </html>
