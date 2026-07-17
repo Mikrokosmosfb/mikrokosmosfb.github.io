@@ -4,283 +4,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mikrokosmos Fansub | Galaksiniz</title>
-    
-    <!-- Fontlar ve İkonlar (Blogger ile aynı) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Fira+Sans:wght@400;600&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        /* MİKROKOSMOS ANA TEMA RENKLERİ */
-        :root {
-            --ana-mor: #7b1fa2;
-            --ikincil-mavi: #3367D6;
-            --koyu-arkaplan: #0b0314;
-            --kart-arkaplan: rgba(255, 255, 255, 0.08);
-            --yazi-rengi: #f3e8ff;
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Nunito', sans-serif;
-            background-color: var(--koyu-arkaplan);
-            color: var(--yazi-rengi);
-            overflow-x: hidden;
-        }
-
-        /* HAREKETLİ UZAY ARKAPLANI */
-        .uzay-bg {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1;
-            background: radial-gradient(circle at 20% 15%, #9333ea66, transparent 25%),
-                        radial-gradient(circle at 80% 80%, #7c3aed44, transparent 30%),
-                        linear-gradient(135deg, #05010a, #16051f);
-        }
-
-        /* ÜST MENÜ (HEADER) */
-        header {
-            background: linear-gradient(to right, var(--ana-mor), var(--ikincil-mavi));
-            padding: 15px 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-        .header-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .logo a {
-            color: white;
-            text-decoration: none;
-            font-size: 24px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        .logo span { color: #ffd700; }
-        
-        nav a {
-            color: white;
-            text-decoration: none;
-            margin-left: 20px;
-            font-weight: bold;
-            transition: 0.3s;
-        }
-        nav a:hover { color: #ffd700; }
-
-        /* ARAMA ÇUBUĞU */
-        .search-area {
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-        #searchInput {
-            width: 100%;
-            padding: 15px;
-            border-radius: 30px;
-            border: 2px solid var(--ana-mor);
-            background: rgba(0,0,0,0.5);
-            color: white;
-            font-size: 16px;
-            outline: none;
-        }
-
-        /* SERİ GRİDİ (KARTLAR) */
-        .content-main {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .grid-title {
-            border-bottom: 2px solid var(--ana-mor);
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .myGrid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 25px;
-        }
-
-        /* KART TASARIMI */
-        .bookItem {
-            background: var(--kart-arkaplan);
-            border-radius: 15px;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: 0.3s;
-            position: relative;
-        }
-        .bookItem:hover {
-            transform: translateY(-10px);
-            border-color: var(--ana-mor);
-            box-shadow: 0 10px 30px rgba(123, 31, 162, 0.5);
-        }
-        .thumb {
-            width: 100%;
-            aspect-ratio: 3/4;
-            object-fit: cover;
-            border-bottom: 3px solid var(--ana-mor);
-        }
+        :root { --mor: #7b1fa2; --mavi: #3367D6; --koyu: #0b0314; --panel: rgba(255, 255, 255, 0.08); }
+        body { margin: 0; font-family: 'Nunito', sans-serif; background-color: var(--koyu); color: #f3e8ff; }
+        .uzay-bg { position: fixed; inset: 0; z-index: -1; background: linear-gradient(135deg, #05010a, #16051f); }
+        .uzay-bg::before { content: ""; position: absolute; inset: 0; background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 50px 50px; opacity: 0.2; }
+        header { background: linear-gradient(to right, var(--mor), var(--mavi)); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        header a { color: white; text-decoration: none; font-weight: 900; }
+        nav a { margin-left: 15px; font-size: 14px; }
+        .search-area { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        #searchInput { width: 100%; padding: 12px; border-radius: 25px; border: 2px solid var(--mor); background: rgba(0,0,0,0.4); color: white; outline: none; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .myGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; }
+        .bookItem { background: var(--panel); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); transition: 0.3s; position: relative; }
+        .bookItem:hover { transform: translateY(-5px); border-color: var(--mor); }
+        .thumb { width: 100%; aspect-ratio: 3/4; object-fit: cover; border-bottom: 2px solid var(--mor); }
         .data { padding: 10px; text-align: center; }
-        .data h2 {
-            font-size: 15px;
-            margin: 0;
-            color: #fff;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            height: 40px;
-        }
-        .type-tag {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: var(--ana-mor);
-            padding: 3px 10px;
-            border-radius: 5px;
-            font-size: 10px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .loader {
-            text-align: center;
-            padding: 50px;
-            font-size: 20px;
-            font-weight: bold;
-        }
-
-        /* MOBİL UYUMLULUK */
-        @media (max-width: 600px) {
-            .myGrid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
-            .logo a { font-size: 18px; }
-            nav a { margin-left: 10px; font-size: 14px; }
-        }
-        /* Meteor Efekti */
-.uzay-bg::after {
-    content: "";
-    position: absolute;
-    top: -10%; left: -10%; width: 120%; height: 120%;
-    background-image: 
-        radial-gradient(1px 1px at 10% 10%, #fff, transparent),
-        radial-gradient(1px 1px at 20% 50%, #fff, transparent),
-        radial-gradient(2px 2px at 40% 80%, #fff, transparent),
-        radial-gradient(1px 1px at 90% 30%, #fff, transparent);
-    background-size: 200px 200px;
-    animation: starsRotate 150s linear infinite;
-}
-
-@keyframes starsRotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-/* Kayan Yıldız (Meteor) Animasyonu */
-.meteor {
-    position: fixed;
-    width: 2px; height: 2px;
-    background: #fff;
-    border-radius: 50%;
-    box-shadow: 0 0 10px 2px #fff, 0 0 20px 4px var(--mor);
-    opacity: 0;
-    animation: meteorAnim 5s linear infinite;
-}
-
-@keyframes meteorAnim {
-    0% { transform: rotate(-35deg) translateX(0); opacity: 0; }
-    10% { opacity: 1; }
-    30% { transform: rotate(-35deg) translateX(-1000px); opacity: 0; }
-    100% { opacity: 0; }
-}
+        .data h2 { font-size: 14px; margin: 0; height: 35px; overflow: hidden; }
+        .type-badge { position: absolute; top: 5px; left: 5px; background: var(--mor); font-size: 9px; padding: 2px 7px; border-radius: 4px; font-weight: bold; }
+        @media (max-width: 600px) { .myGrid { grid-template-columns: repeat(2, 1fr); } }
     </style>
 </head>
 <body>
-<div class="meteor" style="top:10%; right:10%; animation-delay: 0s;"></div>
-<div class="meteor" style="top:30%; right:-5%; animation-delay: 2s;"></div>
-<div class="meteor" style="top:50%; right:20%; animation-delay: 4s;"></div>
     <div class="uzay-bg"></div>
-
     <header>
-        <div class="header-container">
-            <div class="logo">
-                <a href="index.html">MIKROKOSMOS <span>FB</span></a>
-            </div>
-           <nav>
-    <a href="index.html">ANA SAYFA</a>
-    <a href="seriler.html">TÜM SERİLER</a>
-    <a href="istekler.html">İSTEKLER</a> <!-- İleride yapacağız -->
-    <a href="admin.html"><i class="fa-solid fa-lock"></i> PANEL</a>
-</nav>
-        </div>
+        <a href="index.html" style="font-size: 20px;">MIKROKOSMOS FB</a>
+        <nav>
+            <a href="index.html">ANA SAYFA</a>
+            <a href="seriler.html">SERİLER</a>
+            <a href="admin.html"><i class="fa-solid fa-lock"></i></a>
+        </nav>
     </header>
-
-    <div class="search-area">
-        <input type="text" id="searchInput" placeholder="Galakside bir seri ara..." onkeyup="searchFunction()">
+    <div class="search-area"><input type="text" id="searchInput" placeholder="Seri ara..." onkeyup="search()"></div>
+    <div class="container">
+        <div id="series-grid" class="myGrid">Yükleniyor...</div>
     </div>
-
-    <main class="content-main">
-        <div class="grid-title">
-            <i class="fa-solid fa-bolt" style="color: #ffd700;"></i>
-            Tüm Seriler
-        </div>
-        
-        <div id="series-grid" class="myGrid">
-            <div class="loader">Yıldızlar toplanıyor...</div>
-        </div>
-    </main>
-
     <script>
-        let masterData = [];
-
-        // SERİLERİ JSON'DAN ÇEKME
-        async function loadSeries() {
+        let seriesData = [];
+        async function load() {
             try {
-                // Tarayıcı önbelleğini temizlemek için sonuna zaman ekliyoruz
-                const response = await fetch('data/series.json?t=' + new Date().getTime());
-                masterData = await response.json();
-                renderSeries(masterData);
-            } catch (e) {
-                document.getElementById('series-grid').innerHTML = "Henüz seri eklenmemiş veya bir hata oluştu.";
-            }
+                const r = await fetch('data/series.json?t=' + Date.now());
+                seriesData = await r.json();
+                render(seriesData);
+            } catch (e) { document.getElementById('series-grid').innerHTML = "Henüz seri yok."; }
         }
-
-        // SERİLERİ EKRANA BASMA
-        function renderSeries(data) {
-            const grid = document.getElementById('series-grid');
-            grid.innerHTML = '';
-
-            data.forEach(s => {
-                grid.innerHTML += `
-                    <div class="bookItem">
-                        <span class="type-tag">${s.type}</span>
-                        <a href="seri-detay.html?id=${s.id}">
-                            <img src="${s.thumb}" class="thumb" alt="${s.title}" onerror="this.src='https://via.placeholder.com/300x400?text=Resim+Yok'">
-                        </a>
-                        <div class="data">
-                            <h2><a href="seri-detay.html?id=${s.id}" style="color:inherit; text-decoration:none;">${s.title}</a></h2>
-                        </div>
-                    </div>
-                `;
-            });
+        function render(data) {
+            const g = document.getElementById('series-grid');
+            g.innerHTML = data.map(s => `
+                <div class="bookItem">
+                    <span class="type-badge">${s.type}</span>
+                    <a href="seri-detay.html?id=${s.id}"><img src="${s.thumb}" class="thumb"></a>
+                    <div class="data"><h2>${s.title}</h2></div>
+                </div>
+            `).join('');
         }
-
-        // ARAMA FONKSİYONU
-        function searchFunction() {
-            const term = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = masterData.filter(s => s.title.toLowerCase().includes(term));
-            renderSeries(filtered);
+        function search() {
+            const t = document.getElementById('searchInput').value.toLowerCase();
+            render(seriesData.filter(s => s.title.toLowerCase().includes(t)));
         }
-
-        window.onload = loadSeries;
+        window.onload = load;
     </script>
 </body>
 </html>
