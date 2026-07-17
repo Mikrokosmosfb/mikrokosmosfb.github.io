@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mikrokosmos Fansub - Manga, Webtoon ve Novel Okuma Galaksiniz</title>
-    <!-- Tailwind CSS, FontAwesome & Google Fonts -->
+    
+    <!-- CSS & İkon Kütüphaneleri -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
@@ -16,6 +17,9 @@
             --dark-bg: #16151d;
             --card-bg: #22202c;
             --text-color: #eee;
+            --text-secondary: #aaa;
+            --com-color: #41B375;
+            --ong-color: #BA67C8;
         }
         body {
             background-color: var(--dark-bg);
@@ -35,65 +39,85 @@
             background: var(--primary);
             border-radius: 10px;
         }
-        /* Yatay Kaydırma Alanı */
+        /* Yatay Kaydırma */
         .scrolling-wrapper {
             display: flex;
             flex-wrap: nowrap;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
-            scrollbar-width: none; /* Firefox */
+            scrollbar-width: none;
         }
         .scrolling-wrapper::-webkit-scrollbar {
-            display: none; /* Safari & Chrome */
+            display: none;
+        }
+        /* Çapraz Durum Bandı (Badge) */
+        .status-badge {
+            position: absolute;
+            top: 14px;
+            left: -28px;
+            transform: rotate(-45deg);
+            padding: 3px 28px;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+        /* Görsel Karartma ve Efektler */
+        .cover-container:hover .cover-overlay {
+            opacity: 1;
+            visibility: visible;
         }
     </style>
 </head>
 <body>
 
-    <!-- ✦ HEADER / NAV BAR ✦ -->
+    <!-- ✦ ÜST MENÜ / HEADER ✦ -->
     <header class="bg-[#22202c] border-b border-purple-900/30 sticky top-0 z-50 shadow-md">
         <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
             <!-- Logo -->
-            <a href="#/" class="flex items-center gap-3">
+            <a href="#/" class="flex items-center gap-2.5">
                 <span class="text-2xl text-purple-500">✦</span>
-                <span class="text-xl font-bold tracking-wide text-white">Mikrokosmos</span>
+                <span class="text-xl font-bold tracking-wide text-white font-mono">Mikrokosmos Fansub</span>
             </a>
-            <!-- Nav Linkleri -->
-            <nav class="flex items-center gap-4 text-sm font-semibold text-gray-300">
-                <a href="#/" class="hover:text-purple-400 transition">Ana Sayfa</a>
-                <a href="#/seriler" class="hover:text-purple-400 transition">Seriler</a>
-                <a href="#/kutuphane" class="bg-purple-800/80 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition">
-                    <i class="fa-solid fa-book-bookmark"></i> Kütüphanem
+            
+            <!-- Linkler -->
+            <nav class="flex items-center gap-4 text-xs sm:text-sm font-semibold text-gray-300">
+                <a href="#/" class="hover:text-purple-400 transition"><i class="fa-solid fa-house mr-1"></i>Ana Sayfa</a>
+                <a href="#/seriler" class="hover:text-purple-400 transition"><i class="fa-solid fa-list mr-1"></i>Seriler</a>
+                <a href="#/kutuphane" class="bg-purple-800 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-bookshelf"></i> Kütüphane
                 </a>
             </nav>
-            <!-- Arama -->
+
+            <!-- Arama Kutusu -->
             <div class="relative w-full sm:w-64">
-                <input type="text" id="searchInput" onkeyup="liveSearch()" placeholder="Seri ara..." class="w-full bg-[#16151d] border border-purple-900/40 rounded-full px-4 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500">
-                <i class="fa-solid fa-search absolute right-3 top-2.5 text-gray-500 text-xs"></i>
+                <input type="text" id="searchInput" onkeyup="liveSearch()" placeholder="Galakside ara..." class="w-full bg-[#16151d] border border-purple-900/40 rounded-full px-4 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500">
+                <i class="fa-solid fa-search absolute right-4 top-2.5 text-gray-500 text-xs"></i>
                 <div id="searchResults" class="absolute left-0 right-0 top-11 bg-[#22202c] border border-purple-900/30 rounded-xl hidden max-h-80 overflow-y-auto z-50 p-2 shadow-2xl"></div>
             </div>
         </div>
     </header>
 
-    <!-- ✦ MAIN CONTENT APP CONTAINER ✦ -->
+    <!-- ✦ TOP FLAT NAV BUTTONS (Blogger Düzenindeki Hızlı Link Satırı) ✦ -->
+    <div class="bg-[#100f16] py-3 overflow-x-auto whitespace-nowrap scrollbar-none border-b border-purple-900/10">
+        <div class="max-w-7xl mx-auto px-4 flex gap-2">
+            <a href="https://discord.gg/pbU4Kj2S" target="_blank" class="bg-indigo-900/30 hover:bg-indigo-950 text-indigo-300 border border-indigo-900/20 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition"><i class="fa-brands fa-discord"></i> Discord</a>
+            <a href="#/seriler" class="bg-purple-900/30 hover:bg-purple-950 text-purple-300 border border-purple-900/20 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition"><i class="fa-solid fa-list-ul"></i> Tüm Seriler</a>
+            <a href="#/seriler?tag=Novel" class="bg-blue-900/30 hover:bg-blue-950 text-blue-300 border border-blue-900/20 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition"><i class="fa-solid fa-book-open"></i> Noveller</a>
+            <a href="#/kutuphane" class="bg-green-900/30 hover:bg-green-950 text-green-300 border border-green-900/20 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition"><i class="fa-solid fa-star"></i> Takip Edilenler</a>
+        </div>
+    </div>
+
+    <!-- ✦ ANA APP BÖLGESİ ✦ -->
     <main id="app" class="max-w-7xl mx-auto px-4 py-8 min-h-screen">
-        <!-- Sayfa içerikleri buraya dinamik olarak render edilecektir -->
+        <!-- Sayfalar JavaScript tarafından dinamik olarak buraya çizilecektir -->
     </main>
 
-    <!-- ✦ FOOTER ✦ -->
-    <footer class="bg-[#100f16] border-t border-purple-900/20 py-8 text-center mt-12 text-xs text-gray-500">
-        <p class="max-w-2xl mx-auto px-4 mb-4">
-            Bu sitede paylaşılan tüm seriler tanıtım amaçlıdır. Telif haklarını ihlal ettiğimizi düşündüğünüz içerikler için lütfen bizimle iletişime geçin.
-        </p>
-        <p>© <span id="currentYear"></span> Mikrokosmos. Tüm Hakları Saklıdır.</p>
-    </footer>
-
-    <!-- JS ROUTER & ENGINE -->
+    <!-- JS ENGINE, ROUTER & DATABASE -->
     <script>
-        document.getElementById("currentYear").innerText = new Date().getFullYear();
         let database = [];
 
-        // Sayfa yüklendiğinde ve hash değiştiğinde tetiklenecek yönlendirici (Router)
         window.addEventListener('load', initApp);
         window.addEventListener('hashchange', router);
 
@@ -103,189 +127,257 @@
                 database = await res.json();
                 router();
             } catch (err) {
-                console.error("Veritabanı yüklenemedi:", err);
+                console.error("Veritabanı okuma hatası:", err);
                 document.getElementById("app").innerHTML = `
-                    <div class="text-center py-12">
-                        <i class="fa-solid fa-triangle-exclamation text-red-500 text-4xl mb-4"></i>
-                        <p class="text-gray-400">Veritabanı (series.json) yüklenirken hata oluştu. Lütfen dosyaları kontrol edin.</p>
+                    <div class="text-center py-20 text-gray-500">
+                        <i class="fa-solid fa-circle-exclamation text-red-500 text-5xl mb-4"></i>
+                        <p class="text-sm">Sistem kurulamadı. Deponuzdaki 'data/series.json' dosyasını kontrol edin.</p>
                     </div>`;
             }
         }
 
         function router() {
             const hash = window.location.hash || '#/';
-            const appContainer = document.getElementById("app");
+            const app = document.getElementById("app");
             
-            // Arama sonucunu her sayfa geçişinde kapat
             document.getElementById("searchResults").classList.add("hidden");
             document.getElementById("searchInput").value = "";
 
-            // Home Route
             if (hash === '#/' || hash === '') {
-                renderHome(appContainer);
-            } 
-            // All Series Route
-            else if (hash === '#/seriler') {
-                renderAllSeries(appContainer);
-            }
-            // Library/Bookmarks Route
-            else if (hash === '#/kutuphane') {
-                renderLibrary(appContainer);
-            }
-            // Series Detail Route: #/series/:slug
-            else if (hash.startsWith('#/series/')) {
+                renderHome(app);
+            } else if (hash === '#/seriler') {
+                renderAllSeries(app);
+            } else if (hash === '#/kutuphane') {
+                renderLibrary(app);
+            } else if (hash.startsWith('#/series/')) {
                 const slug = hash.replace('#/series/', '');
-                renderSeriesDetail(appContainer, slug);
-            }
-            // Reader Route: #/read/:seriesSlug/:chapterSlug
-            else if (hash.startsWith('#/read/')) {
+                renderSeriesDetail(app, slug);
+            } else if (hash.startsWith('#/read/')) {
                 const parts = hash.replace('#/read/', '').split('/');
                 if (parts.length === 2) {
-                    renderReader(appContainer, parts[0], parts[1]);
+                    renderReader(app, parts[0], parts[1]);
                 }
             }
             window.scrollTo(0,0);
         }
 
-        // 🏠 ANA SAYFA RENDER METODU
+        // 🏠 ANA SAYFA TASARIMI (Blogger Şablonunun Birebir Kopyası)
         function renderHome(container) {
-            // "Noveller" kategorisindeki en yeni serileri filtreleyelim
-            const novels = database.filter(s => s.type === "Novel" || s.tags.includes("Novel"));
-            const yaoi = database.filter(s => s.tags.includes("Yaoi"));
-            
-            // Son yüklenen bölümleri tüm serilerden toplayıp tarihe göre sıralayalım
+            if (database.length === 0) {
+                container.innerHTML = `<div class="text-center py-20 text-gray-500"><p>Henüz galaksiye bir seri yüklenmemiş.</p></div>`;
+                return;
+            }
+
+            // Öne Çıkan İlk Seri (Featured)
+            const feat = database[0];
+
+            // Son yüklenen bölümler (Chapters) listesi
             let latestChapters = [];
-            database.forEach(series => {
-                if (series.chapters && series.chapters.length > 0) {
-                    series.chapters.forEach(ch => {
+            database.forEach(s => {
+                if (s.chapters && s.chapters.length > 0) {
+                    s.chapters.forEach(ch => {
                         latestChapters.push({
-                            seriesTitle: series.title,
-                            seriesSlug: series.id,
-                            seriesCover: series.cover,
-                            chapterTitle: ch.title,
-                            chapterSlug: ch.id,
-                            date: ch.date,
-                            is18: ch.is18
+                            sTitle: s.title, sSlug: s.id, sCover: s.cover, sType: s.type,
+                            chTitle: ch.title, chSlug: ch.id, chDate: ch.date, is18: ch.is18
                         });
                     });
                 }
             });
-            latestChapters.sort((a,b) => new Date(b.date) - new Date(a.date));
+            latestChapters.sort((a,b) => new Date(b.chDate) - new Date(a.chDate));
             const recentChapters = latestChapters.slice(0, 10);
 
-            let html = `
-                <!-- Öne Çıkan Seri Afişi (Hero Banner) -->
-                ${database.length > 0 ? `
-                <div class="relative rounded-2xl overflow-hidden mb-12 h-64 sm:h-96 flex items-end shadow-2xl border border-purple-900/10">
-                    <img src="${database[0].cover}" class="absolute inset-0 w-full h-full object-cover filter blur-sm brightness-[0.25]" alt="">
-                    <div class="relative z-10 p-6 sm:p-10 flex gap-6 items-center">
-                        <img src="${database[0].cover}" class="w-24 sm:w-36 h-36 sm:h-52 object-cover rounded-lg border-2 border-purple-600 shadow-xl" alt="">
+            // Filtreli Kategoriler
+            const novels = database.filter(s => s.type === "Novel" || s.tags.includes("Novel"));
+            const yaoi = database.filter(s => s.tags.includes("Yaoi") || s.tags.includes("BL"));
+            const oneshots = database.filter(s => s.tags.includes("One Shot") || s.tags.includes("Oneshot"));
+            const completed = database.filter(s => s.status === "Tamamlandı");
+
+            container.innerHTML = `
+                <!-- ✦ TOP HERO FEATURED BANNER (Afiş Alanı) ✦ -->
+                <div class="relative rounded-3xl overflow-hidden mb-12 h-80 sm:h-[420px] flex items-end shadow-2xl border border-purple-900/10">
+                    <img src="${feat.cover}" class="absolute inset-0 w-full h-full object-cover filter blur-md scale-105 brightness-[0.25]" alt="">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+                    <div class="relative z-10 p-6 sm:p-12 flex gap-6 items-center">
+                        <img src="${feat.cover}" class="w-24 sm:w-44 h-36 sm:h-64 object-cover rounded-2xl border-2 border-purple-600 shadow-2xl" alt="">
                         <div>
-                            <span class="text-xs bg-purple-700 text-white px-2 py-1 rounded-full font-bold uppercase">${database[0].type}</span>
-                            <h2 class="text-xl sm:text-3xl font-bold mt-2 text-white">${database[0].title}</h2>
-                            <p class="text-xs sm:text-sm text-gray-300 mt-2 line-clamp-3 max-w-xl">${database[0].summary || 'Özet eklenmemiş.'}</p>
-                            <a href="#/series/${database[0].id}" class="inline-block mt-4 bg-purple-700 hover:bg-purple-800 text-white text-xs sm:text-sm px-6 py-2 rounded-full font-bold transition">OKU</a>
+                            <span class="text-xs bg-purple-700 text-white px-3 py-1 rounded-full font-bold uppercase tracking-wider">${feat.type}</span>
+                            <h2 class="text-xl sm:text-4xl font-extrabold mt-3 text-white tracking-wide">${feat.title}</h2>
+                            <p class="text-xs sm:text-sm text-gray-300 mt-3 line-clamp-3 max-w-2xl leading-relaxed">${feat.summary || 'Açıklama girilmemiş.'}</p>
+                            <a href="#/series/${feat.id}" class="inline-block mt-5 bg-purple-700 hover:bg-purple-800 text-white text-xs sm:text-sm px-8 py-2.5 rounded-full font-bold transition shadow-lg">HEMEN OKU</a>
                         </div>
                     </div>
                 </div>
-                ` : ''}
 
-                <!-- İki Sütunlu Düzen (Ana Akış & Yan Sütun) -->
+                <!-- ✦ SOSYAL EVREN BANNERI (Blogger Tasarımı) ✦ -->
+                <div class="bg-gradient-to-r from-purple-900 via-[#4f46e5] to-[#0f172a] rounded-2xl p-4 sm:p-5 flex justify-between items-center mb-12 border border-purple-500/20 shadow-xl">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl bg-white/20 p-2.5 rounded-xl text-white">✦</span>
+                        <div>
+                            <strong class="block text-sm sm:text-base text-white">Mikrokosmos Sosyal Evreni</strong>
+                            <small class="text-purple-200 text-[10px] sm:text-xs">Discord • Instagram • WhatsApp • TikTok • Yedek Site</small>
+                        </div>
+                    </div>
+                    <a href="https://discord.gg/pbU4Kj2S" target="_blank" class="bg-black/30 hover:bg-black/50 border border-white/15 text-xs text-white px-4 py-2 rounded-full font-semibold transition">Keşfet ›</a>
+                </div>
+
+                <!-- ✦ ANA SAYFA SÜTUNLARI ✦ -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     
-                    <!-- SOL TARAF: ANA GÖNDERİLER VE GRİDLER -->
+                    <!-- SOL SÜTUN (İçerik Akışı) -->
                     <div class="lg:col-span-2 space-y-12">
                         
-                        <!-- Yeni Yüklenen Noveller Carouseli -->
+                        <!-- Bu Haftanın Sevilenleri -->
                         <div>
-                            <div class="flex justify-between items-center mb-6">
-                                <h3 class="text-lg font-bold text-purple-400 flex items-center gap-2">
-                                    <i class="fa-solid fa-book-open"></i> Yeni Yüklenen Noveller
-                                </h3>
-                            </div>
-                            <div class="scrolling-wrapper gap-4 pb-4">
-                                ${novels.map(novel => `
-                                    <a href="#/series/${novel.id}" class="flex-none w-36 sm:w-40 group">
-                                        <div class="relative rounded-xl overflow-hidden border border-purple-950/20 group-hover:border-purple-600 transition shadow-lg">
-                                            <img src="${novel.cover}" class="w-full h-48 sm:h-56 object-cover" alt="">
-                                            <span class="absolute bottom-2 left-2 bg-[#16151d]/90 text-[10px] text-purple-300 px-2 py-0.5 rounded font-bold">${novel.status}</span>
+                            <h3 class="text-lg font-bold text-purple-400 mb-6 pb-2 border-b border-purple-900/10 flex items-center gap-2">
+                                <i class="fa-solid fa-fire text-red-500"></i> Bu Haftanın Sevilenleri
+                            </h3>
+                            <div class="scrolling-wrapper gap-4 pb-2">
+                                ${database.slice(0, 8).map(s => `
+                                    <div class="flex-none w-36 sm:w-40 group">
+                                        <div class="relative rounded-2xl overflow-hidden border border-purple-950/20 group-hover:border-purple-600 transition shadow-lg">
+                                            <span class="status-badge" style="background-color: ${s.status === 'Tamamlandı' ? 'var(--com-color)' : 'var(--ong-color)'}">${s.status}</span>
+                                            <a href="#/series/${s.id}"><img src="${s.cover}" class="w-full h-48 sm:h-56 object-cover" alt=""></a>
                                         </div>
-                                        <h4 class="text-xs font-semibold mt-2 line-clamp-2 group-hover:text-purple-400 text-center transition">${novel.title}</h4>
-                                    </a>
+                                        <h4 class="text-xs font-semibold mt-2 line-clamp-1 text-center group-hover:text-purple-400 transition">${s.title}</h4>
+                                        <div class="text-[10px] text-yellow-500 text-center mt-1">⭐ ${s.rating || 'N/A'}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Yeni Yüklenen Noveller -->
+                        <div>
+                            <div class="flex justify-between items-center mb-6 pb-2 border-b border-purple-900/10">
+                                <h3 class="text-lg font-bold text-purple-400 flex items-center gap-2">
+                                    <i class="fa-solid fa-bookmark"></i> Yeni Yüklenen Noveller
+                                </h3>
+                                <a href="#/seriler?tag=Novel" class="text-xs bg-purple-900/30 text-purple-300 px-3 py-1 rounded-full hover:bg-purple-900/50 transition">TÜMÜNÜ GÖR</a>
+                            </div>
+                            <div class="scrolling-wrapper gap-4 pb-2">
+                                ${novels.slice(0, 8).map(n => `
+                                    <div class="flex-none w-36 sm:w-40 group">
+                                        <div class="relative rounded-2xl overflow-hidden border border-purple-950/20 group-hover:border-purple-600 transition shadow-lg">
+                                            <a href="#/series/${n.id}"><img src="${n.cover}" class="w-full h-48 sm:h-56 object-cover" alt=""></a>
+                                        </div>
+                                        <h4 class="text-xs font-semibold mt-2 line-clamp-1 text-center group-hover:text-purple-400 transition">${n.title}</h4>
+                                    </div>
                                 `).join('')}
                             </div>
                         </div>
 
                         <!-- Yeni Yüklenen Bölümler -->
                         <div>
-                            <h3 class="text-lg font-bold text-purple-400 mb-6 flex items-center gap-2">
-                                <i class="fa-solid fa-clock-rotate-left"></i> Yeni Yüklenen Bölümler
+                            <h3 class="text-lg font-bold text-purple-400 mb-6 pb-2 border-b border-purple-900/10 flex items-center gap-2">
+                                <i class="fa-solid fa-layer-group"></i> Yeni Yüklenen Bölümler
                             </h3>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 ${recentChapters.map(ch => `
                                     <div class="bg-[#22202c] p-3 rounded-xl flex gap-3 border border-purple-950/20">
-                                        <img src="${ch.seriesCover}" class="w-12 h-16 object-cover rounded-md flex-shrink-0" alt="">
-                                        <div class="flex flex-col justify-between">
+                                        <img src="${ch.sCover}" class="w-12 h-16 object-cover rounded-lg flex-shrink-0" alt="">
+                                        <div class="flex flex-col justify-between overflow-hidden">
                                             <div>
-                                                <a href="#/series/${ch.seriesSlug}" class="text-xs font-bold text-purple-300 hover:underline line-clamp-1">${ch.seriesTitle}</a>
-                                                <a href="#/read/${ch.seriesSlug}/${ch.chapterSlug}" class="text-sm font-semibold text-gray-200 hover:text-purple-400 line-clamp-1 mt-0.5">${ch.chapterTitle}</a>
+                                                <a href="#/series/${ch.sSlug}" class="text-xs font-bold text-purple-300 hover:underline line-clamp-1">${ch.sTitle}</a>
+                                                <a href="#/read/${ch.sSlug}/${ch.chSlug}" class="text-sm font-semibold text-gray-200 hover:text-purple-400 line-clamp-1 mt-0.5">${ch.chTitle}</a>
                                             </div>
-                                            <span class="text-[10px] text-gray-500">${ch.date}</span>
+                                            <span class="text-[10px] text-gray-500">${ch.chDate}</span>
                                         </div>
                                     </div>
                                 `).join('')}
                             </div>
                         </div>
 
-                        <!-- Yaoi Seriler Gridi -->
+                        <!-- Yaoi Seriler -->
                         <div>
-                            <h3 class="text-lg font-bold text-purple-400 mb-6 flex items-center gap-2">
-                                <i class="fa-solid fa-heart"></i> Yaoi Seriler
-                            </h3>
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                ${yaoi.slice(0, 4).map(s => `
-                                    <a href="#/series/${s.id}" class="group">
-                                        <div class="relative rounded-xl overflow-hidden border border-purple-950/20 group-hover:border-purple-600 transition shadow-lg">
-                                            <img src="${s.cover}" class="w-full h-48 sm:h-56 object-cover" alt="">
+                            <div class="flex justify-between items-center mb-6 pb-2 border-b border-purple-900/10">
+                                <h3 class="text-lg font-bold text-purple-400 flex items-center gap-2">
+                                    <i class="fa-solid fa-venus-mars"></i> Yaoi Seriler
+                                </h3>
+                                <a href="#/seriler?tag=Yaoi" class="text-xs bg-purple-900/30 text-purple-300 px-3 py-1 rounded-full hover:bg-purple-900/50 transition">TÜMÜNÜ GÖR</a>
+                            </div>
+                            <div class="scrolling-wrapper gap-4 pb-2">
+                                ${yaoi.slice(0, 8).map(y => `
+                                    <div class="flex-none w-36 sm:w-40 group">
+                                        <div class="relative rounded-2xl overflow-hidden border border-purple-950/20 group-hover:border-purple-600 transition shadow-lg">
+                                            <a href="#/series/${y.id}"><img src="${y.cover}" class="w-full h-48 sm:h-56 object-cover" alt=""></a>
                                         </div>
-                                        <h4 class="text-xs font-semibold mt-2 line-clamp-1 text-center group-hover:text-purple-400 transition">${s.title}</h4>
-                                    </a>
+                                        <h4 class="text-xs font-semibold mt-2 line-clamp-1 text-center group-hover:text-purple-400 transition">${y.title}</h4>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- One Shotlar -->
+                        <div>
+                            <h3 class="text-lg font-bold text-purple-400 mb-6 pb-2 border-b border-purple-900/10 flex items-center gap-2">
+                                <i class="fa-solid fa-bolt"></i> One Shotlar
+                            </h3>
+                            <div class="scrolling-wrapper gap-4 pb-2">
+                                ${oneshots.slice(0, 8).map(o => `
+                                    <div class="flex-none w-36 sm:w-40 group">
+                                        <div class="relative rounded-2xl overflow-hidden border border-purple-950/20 group-hover:border-purple-600 transition shadow-lg">
+                                            <a href="#/series/${o.id}"><img src="${o.cover}" class="w-full h-48 sm:h-56 object-cover" alt=""></a>
+                                        </div>
+                                        <h4 class="text-xs font-semibold mt-2 line-clamp-1 text-center group-hover:text-purple-400 transition">${o.title}</h4>
+                                    </div>
                                 `).join('')}
                             </div>
                         </div>
 
                     </div>
 
-                    <!-- SAĞ TARAF: SIDEBAR (YAN PANEL) -->
+                    <!-- SAĞ SÜTUN (Sidebar) -->
                     <div class="space-y-8">
-                        <!-- Sitedeki Tüm Kategoriler/Etiketler listesi -->
+                        
+                        <!-- Popüler Web Noveller -->
                         <div class="bg-[#22202c] p-5 rounded-2xl border border-purple-900/30">
-                            <h3 class="font-bold text-purple-400 mb-4 pb-2 border-b border-purple-900/20">Popüler Türler</h3>
-                            <div class="flex flex-wrap gap-2">
-                                ${Array.from(new Set(database.flatMap(s => s.tags || []))).slice(0, 12).map(tag => `
-                                    <a href="#/seriler?tag=${tag}" class="bg-[#16151d] hover:bg-purple-900/30 text-xs text-gray-300 px-3 py-1 rounded-full transition border border-purple-950/20">
-                                        ${tag}
+                            <h3 class="font-bold text-purple-400 mb-4 pb-2 border-b border-purple-900/20 flex justify-between items-center">
+                                <span>Web Novel</span>
+                                <a href="#/seriler?tag=Novel" class="text-[10px] bg-purple-900/30 px-2 py-0.5 rounded text-purple-300">TÜMÜNÜ GÖR</a>
+                            </h3>
+                            <div class="grid grid-cols-3 gap-2">
+                                ${novels.slice(0, 6).map(n => `
+                                    <a href="#/series/${n.id}" class="block group">
+                                        <img src="${n.cover}" class="w-full h-24 object-cover rounded-lg group-hover:opacity-85 border border-purple-950/20 transition" alt="">
+                                        <h4 class="text-[10px] text-center mt-1 truncate">${n.title}</h4>
                                     </a>
                                 `).join('')}
                             </div>
                         </div>
 
-                        <!-- En Çok Beğenilen / Popüler listesi -->
+                        <!-- Tamamlananlar Listesi -->
                         <div class="bg-[#22202c] p-5 rounded-2xl border border-purple-900/30">
-                            <h3 class="font-bold text-purple-400 mb-4 pb-2 border-b border-purple-900/20">Yükselişte Olanlar</h3>
-                            <div class="space-y-3">
+                            <h3 class="font-bold text-purple-400 mb-4 pb-2 border-b border-purple-900/20 flex justify-between items-center">
+                                <span>Tamamlananlar</span>
+                                <a href="#/seriler?tag=Tamamlandı" class="text-[10px] bg-purple-900/30 px-2 py-0.5 rounded text-purple-300">TÜMÜNÜ GÖR</a>
+                            </h3>
+                            <div class="grid grid-cols-3 gap-2">
+                                ${completed.slice(0, 6).map(c => `
+                                    <a href="#/series/${c.id}" class="block group">
+                                        <img src="${c.cover}" class="w-full h-24 object-cover rounded-lg group-hover:opacity-85 border border-purple-950/20 transition" alt="">
+                                        <h4 class="text-[10px] text-center mt-1 truncate">${c.title}</h4>
+                                    </a>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Haftalık Beğenilenler Listesi -->
+                        <div class="bg-[#22202c] p-5 rounded-2xl border border-purple-900/30">
+                            <h3 class="font-bold text-purple-400 mb-4 pb-2 border-b border-purple-900/20">En Çok Beğenilenler</h3>
+                            <div class="space-y-4">
                                 ${database.slice(0, 5).map((s, i) => `
                                     <a href="#/series/${s.id}" class="flex gap-3 items-center group">
-                                        <span class="text-lg font-bold text-purple-500 w-5 text-center">${i+1}</span>
-                                        <img src="${s.cover}" class="w-10 h-14 object-cover rounded-md" alt="">
-                                        <div>
-                                            <h4 class="text-xs font-bold text-gray-200 group-hover:text-purple-400 transition line-clamp-1">${s.title}</h4>
-                                            <span class="text-[10px] text-gray-500">${s.type}</span>
+                                        <span class="text-md font-bold text-purple-500 w-5 text-center">${i+1}</span>
+                                        <img src="${s.cover}" class="w-10 h-14 object-cover rounded-lg flex-shrink-0" alt="">
+                                        <div class="overflow-hidden">
+                                            <h4 class="text-xs font-bold text-gray-200 group-hover:text-purple-400 transition truncate">${s.title}</h4>
+                                            <span class="text-[10px] text-gray-500 block mt-0.5">${s.type}</span>
+                                            <span class="text-[10px] text-yellow-500">⭐ ${s.rating || 'N/A'}</span>
                                         </div>
                                     </a>
                                 `).join('')}
                             </div>
                         </div>
+
                     </div>
 
                 </div>
@@ -293,7 +385,7 @@
             container.innerHTML = html;
         }
 
-        // 📚 TÜM SERİLER VE FİLTRELEME RENDER METODU
+        // 📚 TÜM SERİLER BÖLÜMÜ
         function renderAllSeries(container) {
             const urlParams = new URLSearchParams(window.location.hash.split('?')[1]);
             const selectedTag = urlParams.get('tag');
@@ -303,16 +395,16 @@
                 filteredList = database.filter(s => s.tags && s.tags.includes(selectedTag));
             }
 
-            let html = `
+            container.innerHTML = `
                 <div class="mb-8">
-                    <h2 class="text-2xl font-bold text-purple-400">${selectedTag ? `"${selectedTag}" Türündeki Seriler` : 'Tüm Seriler Galaksisi'}</h2>
-                    <p class="text-gray-400 text-sm mt-1">Toplam ${filteredList.length} seri bulundu.</p>
+                    <h2 class="text-2xl font-bold text-purple-400">${selectedTag ? `"${selectedTag}" Kategorisindeki Seriler` : 'Tüm Seriler Galaksisi'}</h2>
+                    <p class="text-gray-400 text-sm mt-1">Toplam ${filteredList.length} adet seri listeleniyor.</p>
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
                     ${filteredList.map(s => `
                         <a href="#/series/${s.id}" class="group">
-                            <div class="relative rounded-xl overflow-hidden border border-purple-950/20 group-hover:border-purple-600 transition shadow-lg">
+                            <div class="relative rounded-2xl overflow-hidden border border-purple-950/20 group-hover:border-purple-600 transition shadow-lg">
                                 <img src="${s.cover}" class="w-full h-48 sm:h-64 object-cover" alt="">
                                 <span class="absolute bottom-2 left-2 bg-[#16151d]/90 text-[10px] text-purple-300 px-2 py-0.5 rounded font-bold">${s.status}</span>
                             </div>
@@ -321,10 +413,9 @@
                     `).join('')}
                 </div>
             `;
-            container.innerHTML = html;
         }
 
-        // ✦ SERİ DETAY RENDER METODU
+        // ✦ SERİ DETAY SAYFASI TASARIMI (Blogger Detay Görünümünün Birebiri)
         function renderSeriesDetail(container, slug) {
             const series = database.find(s => s.id === slug);
             if (!series) {
@@ -334,31 +425,32 @@
 
             const isBookmarked = checkIsBookmarked(series.id);
 
-            let html = `
-                <!-- Seri Üst Banner ve Bulanık Arka Plan -->
-                <div class="relative rounded-2xl overflow-hidden mb-12 h-48 sm:h-72 flex items-end shadow-2xl">
-                    <img src="${series.cover}" class="absolute inset-0 w-full h-full object-cover filter blur-lg brightness-[0.2]" alt="">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-                    <div class="relative z-10 p-6 flex gap-6 items-center">
-                        <img src="${series.cover}" class="w-20 sm:w-32 h-28 sm:h-44 object-cover rounded-lg border-2 border-purple-600 shadow-xl" alt="">
+            container.innerHTML = `
+                <!-- Seri Üst Banner Görsel Karartma Efektleri -->
+                <div class="relative rounded-3xl overflow-hidden mb-12 h-64 sm:h-80 flex items-end shadow-2xl">
+                    <img src="${series.cover}" class="absolute inset-0 w-full h-full object-cover filter blur-lg scale-105 brightness-[0.25]" alt="">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent"></div>
+                    <div class="relative z-10 p-6 sm:p-10 flex gap-6 items-center">
+                        <img src="${series.cover}" class="w-20 sm:w-36 h-28 sm:h-48 object-cover rounded-2xl border-2 border-purple-600 shadow-2xl" alt="">
                         <div>
-                            <span class="text-xs bg-purple-700 text-white px-2 py-0.5 rounded-full font-bold uppercase">${series.type}</span>
-                            <h2 class="text-lg sm:text-2xl font-bold mt-1 text-white">${series.title}</h2>
-                            <p class="text-xs sm:text-sm text-gray-300 mt-1 line-clamp-1 italic">${series.altTitle || ''}</p>
+                            <span class="text-xs bg-purple-700 text-white px-3 py-1 rounded-full font-bold uppercase tracking-wider">${series.type}</span>
+                            <h2 class="text-lg sm:text-3xl font-extrabold mt-2 text-white">${series.title}</h2>
+                            <p class="text-xs sm:text-sm text-gray-300 mt-1.5 italic">${series.altTitle || ''}</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Detaylar / Metadata -->
+                    
+                    <!-- SOL PANEL: Detaylar & Takip -->
                     <div class="space-y-6">
                         <div class="bg-[#22202c] p-6 rounded-2xl border border-purple-900/30">
-                            <button onclick="toggleBookmark('${series.id}')" id="bookmarkBtn" class="w-full flex justify-center items-center gap-2 p-2.5 rounded-xl font-bold text-sm transition mb-6 ${isBookmarked ? 'bg-green-700 hover:bg-green-800 text-white' : 'bg-purple-700 hover:bg-purple-800 text-white'}">
+                            <button onclick="toggleBookmark('${series.id}')" id="bookmarkBtn" class="w-full flex justify-center items-center gap-2 p-3 rounded-xl font-bold text-sm transition mb-6 ${isBookmarked ? 'bg-green-700 hover:bg-green-800 text-white' : 'bg-purple-700 hover:bg-purple-800 text-white'}">
                                 <i class="fa-solid ${isBookmarked ? 'fa-check' : 'fa-bookmark'}"></i> ${isBookmarked ? 'Kütüphanede Ekli' : 'Kütüphaneye Ekle'}
                             </button>
 
-                            <div class="space-y-3 text-sm">
-                                <div class="flex justify-between"><span class="text-gray-400">Durum:</span><span class="font-semibold text-purple-400">${series.status}</span></div>
+                            <div class="space-y-4 text-xs sm:text-sm">
+                                <div class="flex justify-between"><span class="text-gray-400">Durum:</span><span class="font-bold text-purple-400">${series.status}</span></div>
                                 <div class="flex justify-between"><span class="text-gray-400">Tip:</span><span class="font-semibold">${series.type}</span></div>
                                 <div class="flex justify-between"><span class="text-gray-400">Puan:</span><span class="font-semibold text-yellow-500">⭐ ${series.rating || 'N/A'}</span></div>
                                 <div class="flex justify-between"><span class="text-gray-400">Yaş Sınırı:</span><span class="font-semibold">${series.ageLimit || 'Genel'}</span></div>
@@ -376,17 +468,18 @@
                         </div>
                     </div>
 
-                    <!-- Özet ve Bölümler -->
+                    <!-- SAĞ PANEL: Özet & Bölümler -->
                     <div class="lg:col-span-2 space-y-6">
-                        <!-- Özet Bölümü -->
+                        
+                        <!-- ÖZET -->
                         <div class="bg-[#22202c] p-6 rounded-2xl border border-purple-900/30">
                             <h3 class="font-bold text-purple-400 mb-4 pb-1 border-b border-purple-900/10">ÖZET</h3>
-                            <p class="text-sm leading-relaxed text-gray-300 whitespace-pre-line">${series.summary || 'Açıklama bulunmuyor.'}</p>
+                            <p class="text-xs sm:text-sm leading-relaxed text-gray-300 whitespace-pre-line">${series.summary || 'Bu serinin henüz açıklaması girilmemiş.'}</p>
                         </div>
 
-                        <!-- 18+ Yaş Sınırı ve NSFW Uyarı Kutusu -->
+                        <!-- 18+ Yetişkin İçerik Uyarısı -->
                         ${(series.ageLimit === '18+' || series.ageLimit === 'Yetişkin') ? `
-                        <div class="bg-red-950/30 border-l-4 border-red-600 p-4 rounded-xl flex gap-3 text-red-300">
+                        <div class="bg-red-950/30 border-l-4 border-red-600 p-4 rounded-xl flex gap-3 text-red-300 shadow-lg">
                             <i class="fa-solid fa-triangle-exclamation text-xl pt-1"></i>
                             <div>
                                 <h4 class="font-bold text-sm">Yetişkin İçerik Uyarısı</h4>
@@ -395,11 +488,9 @@
                         </div>
                         ` : ''}
 
-                        <!-- Bölüm Listesi -->
+                        <!-- BÖLÜM LİSTESİ -->
                         <div class="bg-[#22202c] p-6 rounded-2xl border border-purple-900/30">
-                            <div class="flex justify-between items-center mb-6 pb-2 border-b border-purple-900/10">
-                                <h3 class="font-bold text-purple-400">Bölümler</h3>
-                            </div>
+                            <h3 class="font-bold text-purple-400 mb-6 pb-2 border-b border-purple-900/10">Bölümler</h3>
                             <div class="space-y-2 max-h-[400px] overflow-y-auto pr-2">
                                 ${series.chapters && series.chapters.length > 0 ? series.chapters.map(ch => `
                                     <div class="flex justify-between items-center bg-[#16151d] hover:bg-purple-950/20 px-4 py-3 rounded-xl transition border border-purple-950/10">
@@ -409,18 +500,18 @@
                                         </a>
                                         <span class="text-xs text-gray-500">${ch.date}</span>
                                     </div>
-                                `).join('') : `<div class="text-center py-6 text-gray-500 text-sm">Henüz bölüm yüklenmemiş.</div>`}
+                                `).join('') : `<div class="text-center py-6 text-gray-500 text-sm">Sistemde bu seriye ait bölüm bulunmamaktadır.</div>`}
                             </div>
                         </div>
+
                     </div>
                 </div>
             `;
-            container.innerHTML = html;
         }
 
-        // ✦ OKUYUCU (READER) RENDER METODU (MANGA VE NOVEL OKUYUCU ENTEGRESİ)
+        // ✦ OKUYUCU (Manga Webtoon & Novel Destekli)
         async function renderReader(container, seriesSlug, chapterSlug) {
-            container.innerHTML = `<div class="text-center py-12"><div class="animate-spin text-purple-500 text-3xl"><i class="fa-solid fa-spinner"></i></div><p class="text-gray-400 mt-2">Bölüm yükleniyor...</p></div>`;
+            container.innerHTML = `<div class="text-center py-12"><div class="animate-spin text-purple-500 text-3xl"><i class="fa-solid fa-spinner"></i></div><p class="text-gray-400 mt-2">Bölüm hazırlanıyor...</p></div>`;
             
             const series = database.find(s => s.id === seriesSlug);
             if (!series) {
@@ -429,48 +520,40 @@
             }
 
             try {
-                // Bölüm verisini içeren JSON dosyasını GitHub deponuzdan çekelim
                 const res = await fetch(`./data/chapters/${seriesSlug}/${chapterSlug}.json`);
-                if (!res.ok) throw new Error("Bölüm dosyası okunamadı.");
+                if (!res.ok) throw new Error();
                 const chapter = await res.json();
 
-                // Bölüm navigasyonu (Bir Önceki ve Bir Sonraki Bölüm)
                 const chIndex = series.chapters.findIndex(c => c.id === chapterSlug);
-                const nextChapter = chIndex > 0 ? series.chapters[chIndex - 1] : null; // chapters dizisi en yeni en üstte olduğu için
+                const nextChapter = chIndex > 0 ? series.chapters[chIndex - 1] : null;
                 const prevChapter = chIndex < series.chapters.length - 1 ? series.chapters[chIndex + 1] : null;
 
                 let contentHtml = '';
 
-                // MANGA / WEBTOON OKUMA MODU
                 if (chapter.type === "Webtoon" || chapter.type === "Manga") {
                     const rawImages = chapter.content.split('\n').filter(line => line.trim());
-                    
                     contentHtml = `
                         <div class="flex flex-col items-center justify-center max-w-2xl mx-auto space-y-0">
                             ${rawImages.map(img => {
                                 let line = img.trim();
-                                // Eğer imgbox embed koduysa veya <a> tagı içeriyorsa doğrudan HTML olarak çizelim
                                 if (line.startsWith('<a') || line.startsWith('<img') || line.includes('href=')) {
-                                    return `<div class="w-full select-none check-box">${line}</div>`;
+                                    return `<div class="w-full check-box">${line}</div>`;
                                 } else {
-                                    // Sadece görsel linkiyse img tagı olarak çizelim
                                     return `<img src="${line}" class="w-full select-none" loading="lazy" alt="">`;
                                 }
                             }).join('')}
                         </div>
                     `;
-                } 
-                // NOVEL OKUMA MODU (Kişiselleştirilebilir Okuma Paneli)
-                else {
+                } else {
                     contentHtml = `
-                        <!-- NOVEL AYAR PANELİ -->
+                        <!-- NOVEL ÖZEL PANELİ -->
                         <div id="novelSettingsPanel" class="max-w-2xl mx-auto bg-[#22202c] p-4 rounded-xl mb-6 border border-purple-900/30 flex flex-wrap gap-4 items-center justify-between text-xs sm:text-sm">
                             <div class="flex items-center gap-2">
                                 <label class="text-gray-400">Yazı Tipi:</label>
                                 <select onchange="changeNovelFont(this.value)" class="bg-[#16151d] text-white border border-purple-900/40 p-1.5 rounded focus:outline-none">
                                     <option value="font-sans">Montserrat</option>
                                     <option value="font-serif" selected>Times New Roman</option>
-                                    <option value="font-mono">Console/Mono</option>
+                                    <option value="font-mono">Console</option>
                                 </select>
                             </div>
                             <div class="flex items-center gap-2">
@@ -482,31 +565,27 @@
                                     <option value="text-xl">Çok Büyük</option>
                                 </select>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <label class="text-gray-400">Otomatik Kaydır:</label>
-                                <button onclick="toggleNovelScroll()" id="scrollBtn" class="bg-purple-700 hover:bg-purple-800 text-white px-3 py-1.5 rounded transition">Başlat</button>
-                            </div>
+                            <button onclick="toggleNovelScroll()" id="scrollBtn" class="bg-purple-700 hover:bg-purple-800 text-white px-3 py-1.5 rounded transition">Kaydır</button>
                         </div>
 
-                        <!-- HİKAYE METNİ -->
+                        <!-- METİN BÖLGESİ -->
                         <div id="novelReaderContent" class="max-w-2xl mx-auto bg-[#22202c] border border-purple-900/10 p-6 sm:p-10 rounded-2xl shadow-xl leading-relaxed text-gray-300 font-serif text-base whitespace-pre-line">
                             ${chapter.content}
                         </div>
                     `;
                 }
 
-                let html = `
+                container.innerHTML = `
                     <div class="mb-8 text-center max-w-2xl mx-auto">
-                        <a href="#/series/${series.id}" class="text-xs text-purple-400 hover:underline"><i class="fa-solid fa-chevron-left"></i> Seri Detayına Dön</a>
+                        <a href="#/series/${series.id}" class="text-xs text-purple-400 hover:underline">‹ Seri Sayfasına Dön</a>
                         <h2 class="text-xl font-bold mt-2 text-white">${series.title}</h2>
                         <h3 class="text-sm text-gray-400 mt-1">${chapter.title}</h3>
                     </div>
 
-                    <!-- Bölüm Seçimi ve Navigasyonu (Üst) -->
+                    <!-- Navigasyon (Üst) -->
                     <div class="flex justify-between items-center max-w-2xl mx-auto mb-8 bg-[#22202c] p-3 rounded-xl border border-purple-900/30">
                         ${prevChapter ? `<a href="#/read/${series.id}/${prevChapter.id}" class="bg-purple-800/80 hover:bg-purple-700 text-white text-xs px-4 py-2 rounded-lg font-bold transition">◀ Önceki</a>` : '<div></div>'}
                         
-                        <!-- Select Dropdown -->
                         <select onchange="window.location.hash=this.value" class="bg-[#16151d] text-white text-xs border border-purple-900/40 px-3 py-2 rounded focus:outline-none max-w-[150px]">
                             ${series.chapters.map(c => `
                                 <option value="#/read/${series.id}/${c.id}" ${c.id === chapterSlug ? 'selected' : ''}>${c.title}</option>
@@ -516,154 +595,91 @@
                         ${nextChapter ? `<a href="#/read/${series.id}/${nextChapter.id}" class="bg-purple-800/80 hover:bg-purple-700 text-white text-xs px-4 py-2 rounded-lg font-bold transition">Sonraki ▶</a>` : '<div></div>'}
                     </div>
 
-                    <!-- ASIL İÇERİK ALANI -->
                     ${contentHtml}
 
-                    <!-- Bölüm Navigasyonu (Alt) -->
+                    <!-- Navigasyon (Alt) -->
                     <div class="flex justify-between items-center max-w-2xl mx-auto mt-8 bg-[#22202c] p-3 rounded-xl border border-purple-900/30">
                         ${prevChapter ? `<a href="#/read/${series.id}/${prevChapter.id}" class="bg-purple-800/80 hover:bg-purple-700 text-white text-xs px-4 py-2 rounded-lg font-bold transition">◀ Önceki</a>` : '<div></div>'}
                         ${nextChapter ? `<a href="#/read/${series.id}/${nextChapter.id}" class="bg-purple-800/80 hover:bg-purple-700 text-white text-xs px-4 py-2 rounded-lg font-bold transition">Sonraki ▶</a>` : '<div></div>'}
                     </div>
                 `;
 
-                container.innerHTML = html;
-
             } catch (err) {
-                container.innerHTML = `
-                    <div class="text-center py-12 text-gray-500">
-                        <i class="fa-solid fa-triangle-exclamation text-red-500 text-4xl mb-4"></i>
-                        <p>Bölüm içeriği yüklenemedi. Lütfen internet bağlantınızı veya dosya adını kontrol edin.</p>
-                    </div>`;
+                container.innerHTML = `<div class="text-center py-12 text-gray-400"><p>İçerik yüklenemedi. Lütfen internetinizi veya dosya adlarını kontrol edin.</p></div>`;
             }
         }
 
-        // ✦ NOVEL OKUYUCU AYAR FONKSİYONLARI
+        // Okuyucu Panel İşlevleri
         window.changeNovelFont = function(fontClass) {
             const el = document.getElementById("novelReaderContent");
-            if (el) {
-                el.classList.remove("font-sans", "font-serif", "font-mono");
-                el.classList.add(fontClass);
-            }
+            if (el) { el.classList.remove("font-sans", "font-serif", "font-mono"); el.classList.add(fontClass); }
         }
-
         window.changeNovelSize = function(sizeClass) {
             const el = document.getElementById("novelReaderContent");
-            if (el) {
-                el.classList.remove("text-sm", "text-base", "text-lg", "text-xl");
-                el.classList.add(sizeClass);
-            }
+            if (el) { el.classList.remove("text-sm", "text-base", "text-lg", "text-xl"); el.classList.add(sizeClass); }
         }
-
         let novelScrollInterval = null;
         window.toggleNovelScroll = function() {
             const btn = document.getElementById("scrollBtn");
             if (novelScrollInterval) {
-                clearInterval(novelScrollInterval);
-                novelScrollInterval = null;
-                btn.innerText = "Başlat";
-                btn.classList.replace("bg-red-700", "bg-purple-700");
+                clearInterval(novelScrollInterval); novelScrollInterval = null; btn.innerText = "Kaydır"; btn.classList.replace("bg-red-700", "bg-purple-700");
             } else {
-                novelScrollInterval = setInterval(() => {
-                    window.scrollBy({ top: 1, behavior: "smooth" });
-                }, 50);
-                btn.innerText = "Durdur";
-                btn.classList.replace("bg-purple-700", "bg-red-700");
+                novelScrollInterval = setInterval(() => { window.scrollBy({ top: 1, behavior: "smooth" }); }, 50);
+                btn.innerText = "Durdur"; btn.classList.replace("bg-purple-700", "bg-red-700");
             }
         }
+        window.addEventListener('hashchange', () => { if (novelScrollInterval) { clearInterval(novelScrollInterval); novelScrollInterval = null; } });
 
-        // Kütüphaneden silinirse veya sayfa değişirse kaydırmayı durdur
-        window.addEventListener('hashchange', () => {
-            if (novelScrollInterval) {
-                clearInterval(novelScrollInterval);
-                novelScrollInterval = null;
-            }
-        });
-
-        // ✦ KÜTÜPHANE / BOOKMARK YÖNETİMİ (IndexedDB ya da Basit Yerel Bellek)
+        // Kütüphane / Yerel Kayıtlar
         function checkIsBookmarked(id) {
             const list = JSON.parse(localStorage.getItem("mk_bookmarks") || "[]");
             return list.includes(id);
         }
-
         window.toggleBookmark = function(id) {
             let list = JSON.parse(localStorage.getItem("mk_bookmarks") || "[]");
             const btn = document.getElementById("bookmarkBtn");
-            
             if (list.includes(id)) {
-                list = list.filter(item => item !== id);
-                localStorage.setItem("mk_bookmarks", JSON.stringify(list));
-                if (btn) {
-                    btn.className = "w-full flex justify-center items-center gap-2 p-2.5 rounded-xl font-bold text-sm transition mb-6 bg-purple-700 hover:bg-purple-800 text-white";
-                    btn.innerHTML = `<i class="fa-solid fa-bookmark"></i> Kütüphaneye Ekle`;
-                }
+                list = list.filter(item => item !== id); localStorage.setItem("mk_bookmarks", JSON.stringify(list));
+                if (btn) { btn.className = "w-full flex justify-center items-center gap-2 p-3 rounded-xl font-bold text-sm mb-6 bg-purple-700 hover:bg-purple-800 text-white"; btn.innerHTML = `<i class="fa-solid fa-bookmark"></i> Kütüphaneye Ekle`; }
             } else {
-                list.push(id);
-                localStorage.setItem("mk_bookmarks", JSON.stringify(list));
-                if (btn) {
-                    btn.className = "w-full flex justify-center items-center gap-2 p-2.5 rounded-xl font-bold text-sm transition mb-6 bg-green-700 hover:bg-green-800 text-white";
-                    btn.innerHTML = `<i class="fa-solid fa-check"></i> Kütüphanede Ekli`;
-                }
+                list.push(id); localStorage.setItem("mk_bookmarks", JSON.stringify(list));
+                if (btn) { btn.className = "w-full flex justify-center items-center gap-2 p-3 rounded-xl font-bold text-sm mb-6 bg-green-700 hover:bg-green-800 text-white"; btn.innerHTML = `<i class="fa-solid fa-check"></i> Kütüphanede Ekli`; }
             }
         }
-
         function renderLibrary(container) {
             const list = JSON.parse(localStorage.getItem("mk_bookmarks") || "[]");
             const bookmarkedSeries = database.filter(s => list.includes(s.id));
-
-            let html = `
-                <div class="mb-8">
-                    <h2 class="text-2xl font-bold text-purple-400">Kütüphaneniz</h2>
-                    <p class="text-gray-400 text-sm mt-1">Hızlı okumak için takip ettiğiniz serileriniz.</p>
-                </div>
-
+            container.innerHTML = `
+                <div class="mb-8"><h2 class="text-2xl font-bold text-purple-400">Kütüphaneniz</h2></div>
                 ${bookmarkedSeries.length > 0 ? `
                 <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
                     ${bookmarkedSeries.map(s => `
                         <a href="#/series/${s.id}" class="group">
-                            <div class="relative rounded-xl overflow-hidden border border-purple-950/20 group-hover:border-purple-600 transition shadow-lg">
-                                <img src="${s.cover}" class="w-full h-48 sm:h-64 object-cover" alt="">
-                            </div>
-                            <h3 class="text-xs font-semibold mt-2 line-clamp-2 text-center group-hover:text-purple-400 transition">${s.title}</h3>
+                            <div class="relative rounded-2xl overflow-hidden border border-purple-950/20 group-hover:border-purple-600 transition shadow-lg"><img src="${s.cover}" class="w-full h-48 sm:h-64 object-cover" alt=""></div>
+                            <h3 class="text-xs font-semibold mt-2 line-clamp-1 text-center group-hover:text-purple-400 transition">${s.title}</h3>
                         </a>
                     `).join('')}
                 </div>
-                ` : `
-                <div class="text-center py-20 text-gray-500">
-                    <i class="fa-solid fa-bookmark text-purple-900/30 text-5xl mb-4"></i>
-                    <p class="text-sm">Kütüphanenize henüz hiçbir seri eklemediniz.</p>
-                </div>
-                `}
+                ` : `<div class="text-center py-20 text-gray-500"><i class="fa-solid fa-bookmark text-5xl mb-4"></i><p>Kütüphaneniz henüz boş.</p></div>`}
             `;
-            container.innerHTML = html;
         }
 
-        // ✦ CANLI DETAYLI ARAMA (LIVE SEARCH)
+        // Detaylı Canlı Arama
         window.liveSearch = function() {
             const input = document.getElementById("searchInput").value.trim().toUpperCase();
             const resultsDiv = document.getElementById("searchResults");
-            
-            if (input === "") {
-                resultsDiv.classList.add("hidden");
-                resultsDiv.innerHTML = "";
-                return;
-            }
-
+            if (input === "") { resultsDiv.classList.add("hidden"); resultsDiv.innerHTML = ""; return; }
             const matched = database.filter(s => s.title.toUpperCase().includes(input) || (s.altTitle && s.altTitle.toUpperCase().includes(input)));
-            
             if (matched.length > 0) {
                 resultsDiv.classList.remove("hidden");
                 resultsDiv.innerHTML = matched.map(s => `
                     <a href="#/series/${s.id}" onclick="document.getElementById('searchResults').classList.add('hidden')" class="flex gap-3 items-center p-2 hover:bg-purple-950/30 rounded-lg transition border-b border-purple-950/10">
                         <img src="${s.cover}" class="w-10 h-14 object-cover rounded-md flex-shrink-0" alt="">
-                        <div>
-                            <h4 class="text-xs font-bold text-gray-200 line-clamp-1">${s.title}</h4>
-                            <span class="text-[9px] bg-purple-900/40 text-purple-300 px-2 py-0.5 rounded-full font-bold uppercase">${s.type}</span>
-                        </div>
+                        <div><h4 class="text-xs font-bold text-gray-200 line-clamp-1">${s.title}</h4><span class="text-[9px] bg-purple-900/40 text-purple-300 px-2 py-0.5 rounded-full font-bold uppercase">${s.type}</span></div>
                     </a>
                 `).join('');
             } else {
-                resultsDiv.classList.remove("hidden");
-                resultsDiv.innerHTML = `<div class="text-xs text-gray-500 text-center py-4">Aradığınız kriterde seri bulunamadı.</div>`;
+                resultsDiv.classList.remove("hidden"); resultsDiv.innerHTML = `<div class="text-xs text-gray-500 text-center py-4">Sonuç bulunamadı.</div>`;
             }
         }
     </script>
